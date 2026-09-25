@@ -1,6 +1,7 @@
 cff-version: 1.2.0
 title:
-    'python-package-template: A GitHub template repository for a Python package'
+    'gwmock-newtonian: Newtonian-noise and seismic-witness simulation for
+    triangular gravitational-wave detectors'
 license: 'BSD'
 type: software
 authors:
@@ -10,5 +11,6 @@ authors:
       orcid: 'https://orcid.org/0000-0003-2166-0027'
 keywords:
     - python
-    - github
-    - template
+    - gravitational-waves
+    - newtonian-noise
+    - einstein-telescope

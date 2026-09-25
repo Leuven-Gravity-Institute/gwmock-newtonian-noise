@@ -1,24 +1,41 @@
-# Python Project Template
+# gwmock-newtonian
 
-[![Python CI](https://github.com/isaac-cf-wong/python-package-template/actions/workflows/ci.yml/badge.svg)](https://github.com/isaac-cf-wong/python-package-template/actions/workflows/ci.yml)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/isaac-cf-wong/python-package-template/main.svg)](https://results.pre-commit.ci/latest/github/isaac-cf-wong/python-package-template/main)
-[![Documentation Status](https://github.com/isaac-cf-wong/python-package-template/actions/workflows/documentation.yml/badge.svg)](https://isaac-cf-wong.github.io/python-package-template/)
-[![codecov](https://codecov.io/gh/isaac-cf-wong/python-package-template/graph/badge.svg?token=COF8341N60)](https://codecov.io/gh/isaac-cf-wong/python-package-template)
-[![PyPI Version](https://img.shields.io/pypi/v/package-name-placeholder)](https://pypi.org/project/package-name-placeholder/)
-[![Python Versions](https://img.shields.io/pypi/pyversions/package-name-placeholder)](https://pypi.org/project/package-name-placeholder/)
+[![Python CI](https://github.com/isaac-cf-wong/gwmock-newtonian/actions/workflows/ci.yml/badge.svg)](https://github.com/isaac-cf-wong/gwmock-newtonian/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](LICENSE)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![DOI](https://zenodo.org/badge/924023559.svg)](https://doi.org/10.5281/zenodo.18017404)
 [![SPEC 0 — Minimum Supported Dependencies](https://img.shields.io/badge/SPEC-0-green?labelColor=%23004811&color=%235CA038)](https://scientific-python.org/specs/spec-0000/)
 
-This project is a template for creating Python packages with a standardized
-structure and configuration. It includes the configurations for various
-development tools such as linters, formatters, type checkers, and test runners.
+`gwmock-newtonian` simulates Newtonian noise in triangular gravitational-wave
+detectors such as the Einstein Telescope (ET). Its eventual scope is the
+Newtonian-noise seismic field, detector/witness response, and joint
+strain+witness covariance/realization generation — **none of that physics is implemented yet**; see below.
 
-## Getting started
+In its current scaffold form (protocol conformance only) this
+package implements **no Newtonian/seismic physics**. What exists is structural
+scaffolding: a validated config schema, RNG policy, channel/provenance types,
+and a covariance/realization/stream API conforming to the optional
+[`JointStrainWitnessSimulator` protocol](https://github.com/Leuven-Gravity-Institute/gwmock-noise/blob/main/src/gwmock_noise/simulators/joint_protocol.py)
+from the public
+[`gwmock-noise`](https://github.com/Leuven-Gravity-Institute/gwmock-noise)
+package, backed by a physics-free placeholder simulator (temporally white, fixed
+equicorrelation) so the protocol, RNG policy, and adapter can be
+conformance-tested before any physical model exists. The package registers
+itself as a `gwmock_noise.joint_backends` entry point, so `gwmock-noise` can
+discover this backend without ever importing it directly. A
+compatibility adapter lets existing `gwmock-noise` consumers keep receiving
+strain-only output from this joint-capable (but not yet physical) simulator. The
+physical model is not implemented yet.
 
-Use **Use this template** on GitHub, then read
-[`docs/template_documentation/`](docs/template_documentation/) — onboarding,
-user guide, and development notes in one place. Delete that directory and the
-**Template documentation** `nav` block in `zensical.toml` when you no longer
-need them. Develop your library under `src/`.
+## Development
+
+```bash
+uv sync
+uv run pytest -q
+uv run ruff check .
+uv run ruff format --check .
+```
+
+Pre-commit hooks are configured in `.pre-commit-config.yaml`
+(`uv run prek install` to enable them locally). Documentation is built with
+[Zensical](https://zensical.org) from `docs/`
+(`uv run --group docs zensical build`).
