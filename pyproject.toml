@@ -28,6 +28,7 @@ dependencies = [
   "gwmock-noise @ git+https://github.com/Leuven-Gravity-Institute/gwmock-noise.git@ef45695b920128a2bf4ce57d913272664c3da0d8",
   "numpy>=2.2.0",
   "pydantic>=2.9.0",
+  "scipy>=1.14.0",
   "typer>=0.26.8",
 ]
 
