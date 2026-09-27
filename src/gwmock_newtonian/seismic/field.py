@@ -35,12 +35,14 @@ dispersion (the optional ``phase_velocity`` override), directional anisotropy
 requested position) are all caller-supplied configuration -- this module
 fixes no "realistic ET" parameter set.
 
-Scope note: only the bulk mass-conservation density perturbation
-``delta_rho = -rho0 * div(u)`` is modeled. The additional free-surface areal
+Scope note: this module models only the bulk mass-conservation density
+perturbation ``delta_rho = -rho0 * div(u)``. The additional free-surface areal
 density perturbation sourced by the moving ground surface (the dominant
 Newtonian-noise term for a gravimeter near the surface; see Harms (2019)
-Sec. 5.1) is deliberately deferred to the detector-response code that
-consumes this field, not modeled here.
+Sec. 5.1) is *not* modeled here; it is applied downstream in
+:mod:`gwmock_newtonian.detector.newtonian`, which consumes this field and
+exposes the term through its ``include_areal`` switch. This module is unchanged
+by that downstream implementation.
 """
 
 from __future__ import annotations
