@@ -9,21 +9,41 @@ calibration.
 Nested benchmark arrays
 -----------------------
 
-:func:`nested_disk_array` builds arrays from a **fixed** master sequence of
-``max_sensors`` positions (a sunflower/Vogel spiral filling a disk of radius
-``aperture``); the family member for ``N`` is the first ``N`` entries of that
-sequence. The nesting rule is therefore exact and testable:
+:func:`nested_disk_array` builds arrays from a **fixed** set of ``max_sensors``
+master sites (a sunflower/Vogel spiral filling a disk of radius ``aperture``)
+taken in a fixed *site order*; the family member for ``N`` is the first ``N``
+sites of that order. The caller must name the order, as a
+:class:`NestedArrayMode`:
 
-- positions are nested, ``positions(N) == positions(N_max)[:N]``;
+- :attr:`NestedArrayMode.FIXED_APERTURE` orders the sites by farthest-point
+  sampling seeded at the outermost site. The outermost site is present at every
+  ``N``, so the realized radius is the same for every ``N``: the master
+  sequence's outer radius ``aperture * sqrt(1 - 1 / (2 * max_sensors))``, which
+  falls short of the ceiling by a relative ``1 / (2 * max_sensors)`` at most.
+  Changing ``N`` changes the sensor density inside that fixed span, not the
+  span. This is the mode an ``N`` scan should use.
+- :attr:`NestedArrayMode.GROWING_SPAN` takes the master sequence in its own
+  radially increasing order, so the realized radius grows with ``N`` (for
+  ``aperture=800`` and ``max_sensors=12`` it is about 163 m at ``N=1``, 432 m at
+  ``N=4`` and 783 m at ``N=12``). An ``N`` scan in this mode confounds sensor
+  density with baseline; it is kept for studies that want exactly that.
+
+In both modes the nesting rule is exact and testable:
+
+- positions are nested, ``positions(N) == positions(N_max)[:N]``, and every
+  position is one of the fixed master sites;
 - the aperture ceiling ``aperture`` is a fixed parameter of the family, not a
   function of ``N``;
 - every per-sensor property -- measured quantity, sensing axis rule, response,
   calibration, self-noise PSD, timing offset -- is fixed and identical for every
   ``N``.
 
-Changing ``N`` therefore changes only the number of active sensors and the
-aggregate array quality; the latter is made explicit, not silent, by the
-manifest's raw count, effective rank and participation ratio.
+Changing ``N`` therefore changes only which of the fixed sites are active and
+the aggregate array quality; the latter is made explicit, not silent, by the
+manifest's raw count, effective rank and participation ratio. The manifest also
+records the mode and the *realized* horizontal radius and span next to the
+``aperture`` ceiling, so a change of span with ``N`` is never hidden behind a
+constant ceiling.
 
 Effective rank versus raw count
 -------------------------------
@@ -45,6 +65,7 @@ import math
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
+from enum import StrEnum
 from typing import Any
 
 import numpy as np
@@ -61,8 +82,40 @@ from gwmock_newtonian.witness.sensor import (
 #: Golden angle used by the sunflower aperture-filling sequence, in radians.
 _GOLDEN_ANGLE = math.pi * (3.0 - math.sqrt(5.0))
 
+#: Number of horizontal coordinates in an array centre ``(x, y)``.
+_HORIZONTAL_DIMENSIONS = 2
+
 #: Default relative eigenvalue threshold for :func:`effective_rank`.
 _DEFAULT_RANK_RTOL = 1e-9
+
+
+class NestedArrayMode(StrEnum):
+    """The site order a nested disk array takes its first ``N`` sites from.
+
+    See the module docstring for the contract each mode promises.
+    """
+
+    #: Farthest-point order seeded at the outermost site: fixed realized span.
+    FIXED_APERTURE = "fixed_aperture"
+    #: The master sequence's radially increasing order: span grows with ``N``.
+    GROWING_SPAN = "growing_span"
+
+
+def _horizontal_radius(positions: Sequence[tuple[float, float, float]], center: tuple[float, float]) -> float:
+    """Return the largest horizontal distance of ``positions`` from ``center``; ``0.0`` when empty."""
+    if not positions:
+        return 0.0
+    horizontal = np.array(positions, dtype=float)[:, :2] - np.asarray(center, dtype=float)
+    return float(np.max(np.hypot(horizontal[:, 0], horizontal[:, 1])))
+
+
+def _horizontal_span(positions: Sequence[tuple[float, float, float]]) -> float:
+    """Return the largest horizontal distance between two of ``positions``; ``0.0`` for fewer than two."""
+    if not positions:
+        return 0.0
+    horizontal = np.array(positions, dtype=float)[:, :2]
+    difference = horizontal[:, None, :] - horizontal[None, :, :]
+    return float(np.max(np.hypot(difference[..., 0], difference[..., 1])))
 
 
 def _hermitian_eigenvalues(matrix: NDArray[np.complexfloating]) -> NDArray[np.float64]:
@@ -297,8 +350,21 @@ class ArrayManifest:
     """Immutable record of an array's geometry, calibration and rank summary.
 
     Attributes:
-        aperture: Fixed aperture radius in metres, or ``None`` for an explicit array.
+        aperture: Fixed aperture radius ceiling in metres, or ``None`` for an
+            explicit array.
         nesting_rule: Human-readable statement of the nesting rule.
+        mode: The nested-array mode (a :class:`NestedArrayMode` value), or
+            ``"explicit"`` for an explicit array.
+        center: Horizontal centre ``(x, y)`` in metres that ``realized_radius``
+            is measured from.
+        realized_radius: Largest horizontal distance in metres of a declared
+            sensor from ``center``; the realized counterpart of ``aperture``.
+        realized_span: Largest horizontal distance in metres between two
+            declared sensors; ``0.0`` for fewer than two.
+        active_realized_radius: As ``realized_radius``, over the present sensors
+            only.
+        active_realized_span: As ``realized_span``, over the present sensors
+            only.
         reference_frequency: Frequency in hertz at which per-sensor response and
             self-noise, and the rank summary, are evaluated.
         raw_sensor_count: Number of sensors declared, including missing ones.
@@ -312,6 +378,12 @@ class ArrayManifest:
 
     aperture: float | None
     nesting_rule: str
+    mode: str
+    center: tuple[float, float]
+    realized_radius: float
+    realized_span: float
+    active_realized_radius: float
+    active_realized_span: float
     reference_frequency: float
     raw_sensor_count: int
     active_sensor_count: int
@@ -326,6 +398,12 @@ class ArrayManifest:
         return {
             "aperture": self.aperture,
             "nesting_rule": self.nesting_rule,
+            "mode": self.mode,
+            "center": list(self.center),
+            "realized_radius": self.realized_radius,
+            "realized_span": self.realized_span,
+            "active_realized_radius": self.active_realized_radius,
+            "active_realized_span": self.active_realized_span,
             "reference_frequency": self.reference_frequency,
             "raw_sensor_count": self.raw_sensor_count,
             "active_sensor_count": self.active_sensor_count,
@@ -346,9 +424,13 @@ class WitnessArray:
         noise: Array-level noise model; defaults to independent self-noise.
         missing: Names of sensors treated as missing (dropped from every
             covariance, realization and channel list).
-        aperture: Fixed aperture radius in metres, or ``None`` for an explicit
-            array.
+        aperture: Fixed aperture radius ceiling in metres, or ``None`` for an
+            explicit array.
         nesting_rule: Human-readable statement of the nesting rule.
+        mode: The nested-array mode (a :class:`NestedArrayMode` value), or
+            ``"explicit"`` for an explicit array.
+        center: Horizontal centre ``(x, y)`` in metres that the realized radius
+            is measured from.
     """
 
     sensors: tuple[WitnessSensor, ...]
@@ -356,6 +438,8 @@ class WitnessArray:
     missing: tuple[str, ...] = ()
     aperture: float | None = None
     nesting_rule: str = "explicit"
+    mode: str = "explicit"
+    center: tuple[float, float] = (0.0, 0.0)
 
     def __post_init__(self) -> None:
         """Validate unique sensor names, the missing mask and the aperture."""
@@ -369,6 +453,8 @@ class WitnessArray:
             raise ValueError(f"missing sensor names must be unique, got {self.missing}.")
         if self.aperture is not None and not (self.aperture > 0.0):
             raise ValueError(f"aperture must be positive, got {self.aperture}.")
+        if len(self.center) != _HORIZONTAL_DIMENSIONS or not all(math.isfinite(value) for value in self.center):
+            raise ValueError(f"center must be a finite (x, y) pair, got {self.center}.")
         if not isinstance(self.noise, NoiseModel):
             raise TypeError(f"noise must be a NoiseModel, got {type(self.noise)!r}.")
         declared = self.noise.declared_channel_order
@@ -399,6 +485,32 @@ class WitnessArray:
         """Return every declared sensor position, in array order."""
         return tuple(sensor.position for sensor in self.sensors)
 
+    def realized_radius(self, *, active_only: bool = False) -> float:
+        """Return the largest horizontal distance in metres of a sensor from :attr:`center`.
+
+        Args:
+            active_only: If ``True`` use the present sensors only; otherwise
+                every declared sensor.
+
+        Returns:
+            The realized radius; ``0.0`` for an empty sensor set.
+        """
+        sensors = self.active_sensors if active_only else self.sensors
+        return _horizontal_radius([sensor.position for sensor in sensors], self.center)
+
+    def realized_span(self, *, active_only: bool = False) -> float:
+        """Return the largest horizontal distance in metres between two sensors.
+
+        Args:
+            active_only: If ``True`` use the present sensors only; otherwise
+                every declared sensor.
+
+        Returns:
+            The realized span; ``0.0`` for fewer than two sensors.
+        """
+        sensors = self.active_sensors if active_only else self.sensors
+        return _horizontal_span([sensor.position for sensor in sensors])
+
     def noise_covariance(self, frequency: float, *, active_only: bool = True) -> NDArray[np.complex128]:
         """Return the array noise covariance at one frequency.
 
@@ -421,6 +533,8 @@ class WitnessArray:
             missing=tuple(missing),
             aperture=self.aperture,
             nesting_rule=self.nesting_rule,
+            mode=self.mode,
+            center=self.center,
         )
 
     def permuted(self, order: Sequence[int]) -> WitnessArray:
@@ -442,6 +556,8 @@ class WitnessArray:
             missing=self.missing,
             aperture=self.aperture,
             nesting_rule=self.nesting_rule,
+            mode=self.mode,
+            center=self.center,
         )
 
     def manifest(self, reference_frequency: float = 1.0, rank_rtol: float = _DEFAULT_RANK_RTOL) -> ArrayManifest:
@@ -477,6 +593,12 @@ class WitnessArray:
         return ArrayManifest(
             aperture=self.aperture,
             nesting_rule=self.nesting_rule,
+            mode=self.mode,
+            center=self.center,
+            realized_radius=self.realized_radius(),
+            realized_span=self.realized_span(),
+            active_realized_radius=self.realized_radius(active_only=True),
+            active_realized_span=self.realized_span(active_only=True),
             reference_frequency=reference_frequency,
             raw_sensor_count=self.raw_sensor_count,
             active_sensor_count=len(self.active_sensors),
@@ -522,6 +644,55 @@ def sunflower_positions(
     return tuple((float(xi), float(yi), float(depth)) for xi, yi in zip(x, y, strict=True))
 
 
+def nested_site_order(
+    max_sensors: int,
+    aperture: float,
+    mode: NestedArrayMode | str,
+    center: tuple[float, float] = (0.0, 0.0),
+) -> tuple[int, ...]:
+    """Return the order in which a nested disk array activates the master sites.
+
+    The ``N``-sensor member of the family occupies the master sites
+    ``order[:N]``, where the master sites are
+    ``sunflower_positions(max_sensors, aperture, center)``.
+
+    Args:
+        max_sensors: Number of master sites, at least one.
+        aperture: Aperture radius ceiling in metres, strictly positive.
+        mode: :attr:`NestedArrayMode.FIXED_APERTURE` for the farthest-point
+            order seeded at the outermost site (ties broken by the lowest site
+            index), or :attr:`NestedArrayMode.GROWING_SPAN` for the identity
+            order.
+        center: Horizontal centre ``(x, y)`` in metres.
+
+    Returns:
+        A permutation of ``range(max_sensors)``.
+    """
+    mode = NestedArrayMode(mode)
+    positions = sunflower_positions(max_sensors, aperture, center=center)
+    if mode is NestedArrayMode.GROWING_SPAN:
+        return tuple(range(max_sensors))
+    horizontal = np.array(positions, dtype=float)[:, :2]
+    offset = horizontal - np.asarray(center, dtype=float)
+    first = int(np.argmax(np.hypot(offset[:, 0], offset[:, 1])))
+    order = [first]
+    distance = np.hypot(*(horizontal - horizontal[first]).T)
+    distance[first] = -np.inf
+    while len(order) < max_sensors:
+        chosen = int(np.argmax(distance))
+        order.append(chosen)
+        distance = np.minimum(distance, np.hypot(*(horizontal - horizontal[chosen]).T))
+        distance[order] = -np.inf
+    return tuple(order)
+
+
+#: How each mode's site order is described in the nesting rule.
+_SITE_ORDER_DESCRIPTION = {
+    NestedArrayMode.FIXED_APERTURE: "farthest-point order from the outermost site (realized span fixed across N)",
+    NestedArrayMode.GROWING_SPAN: "radially increasing sequence order (realized span grows with N)",
+}
+
+
 def _radial_orientation(
     position: tuple[float, float, float], center: tuple[float, float]
 ) -> tuple[float, float, float]:
@@ -539,6 +710,7 @@ def nested_disk_array(  # noqa: PLR0913 -- one parameter per physically distinct
     *,
     aperture: float,
     max_sensors: int,
+    mode: NestedArrayMode | str,
     depth: float = 0.0,
     center: tuple[float, float] = (0.0, 0.0),
     quantity: SensorQuantity = SensorQuantity.DISPLACEMENT,
@@ -550,18 +722,23 @@ def nested_disk_array(  # noqa: PLR0913 -- one parameter per physically distinct
     noise: NoiseModel | None = None,
     name_prefix: str = "W",
 ) -> WitnessArray:
-    """Build a nested disk array: the first ``n_sensors`` of a fixed master sequence.
+    """Build a nested disk array: the first ``n_sensors`` master sites in the mode's site order.
 
     Every sensor shares the same per-sensor quality (quantity, response,
     calibration, self-noise PSD, timing offset, and either a fixed axis or the
     radial axis rule), so ``n_sensors`` changes only how many of the fixed
-    positions are active -- never the aperture ceiling or any per-sensor
-    property.
+    sites are active -- never the aperture ceiling or any per-sensor property.
+    Whether it changes the realized span depends on ``mode``, which has no
+    default so that an ``N`` scan never gets a growing span silently.
 
     Args:
         n_sensors: Number of active sensors, ``1 <= n_sensors <= max_sensors``.
-        aperture: Fixed aperture radius in metres, strictly positive.
-        max_sensors: Length of the fixed master sequence, at least ``n_sensors``.
+        aperture: Fixed aperture radius ceiling in metres, strictly positive.
+        max_sensors: Number of fixed master sites, at least ``n_sensors``.
+        mode: The site order, see :func:`nested_site_order`.
+            :attr:`NestedArrayMode.FIXED_APERTURE` keeps the realized radius
+            fixed across ``N``; :attr:`NestedArrayMode.GROWING_SPAN` lets it
+            grow with ``N``.
         depth: Common ``z`` depth in metres (positive downward).
         center: Horizontal centre ``(x, y)`` in metres.
         quantity: Measured kinematic quantity, shared by every sensor.
@@ -573,19 +750,22 @@ def nested_disk_array(  # noqa: PLR0913 -- one parameter per physically distinct
         orientation: ``"radial"`` (default) for the horizontal outward axis at
             each position, or an explicit unit axis shared by every sensor.
         noise: Array noise model; defaults to :class:`DiagonalNoise`.
-        name_prefix: Identifier prefix; sensors are named ``f"{prefix}{i}"``.
+        name_prefix: Identifier prefix; the ``i``-th site in the order is named
+            ``f"{prefix}{i}"``, so a name denotes the same site for every ``N``.
 
     Returns:
         The :class:`WitnessArray`.
     """
+    mode = NestedArrayMode(mode)
     if n_sensors < 1:
         raise ValueError(f"n_sensors must be at least 1, got {n_sensors}.")
     if n_sensors > max_sensors:
         raise ValueError(f"n_sensors must not exceed max_sensors, got {n_sensors} > {max_sensors}.")
     positions = sunflower_positions(max_sensors, aperture, center=center, depth=depth)
+    order = nested_site_order(max_sensors, aperture, mode, center=center)
     sensors = []
     for index in range(n_sensors):
-        position = positions[index]
+        position = positions[order[index]]
         if orientation == "radial":
             axis = _radial_orientation(position, center)
         elif isinstance(orientation, str):
@@ -609,9 +789,12 @@ def nested_disk_array(  # noqa: PLR0913 -- one parameter per physically distinct
         noise=noise if noise is not None else DiagonalNoise(),
         aperture=aperture,
         nesting_rule=(
-            f"first N of the fixed {max_sensors}-sensor sunflower sequence filling aperture {aperture} m; "
+            f"{mode.value}: first N sites, in {_SITE_ORDER_DESCRIPTION[mode]}, of the fixed "
+            f"{max_sensors}-site sunflower sequence filling aperture {aperture} m; "
             "per-sensor quantity, axis rule, response, calibration, self-noise and timing fixed across N"
         ),
+        mode=mode.value,
+        center=(float(center[0]), float(center[1])),
     )
 
 
@@ -620,11 +803,13 @@ __all__ = [
     "CorrelatedNoise",
     "DiagonalNoise",
     "ExplicitNoise",
+    "NestedArrayMode",
     "NoiseModel",
     "SensorManifest",
     "WitnessArray",
     "effective_rank",
     "nested_disk_array",
+    "nested_site_order",
     "participation_ratio",
     "sunflower_positions",
 ]

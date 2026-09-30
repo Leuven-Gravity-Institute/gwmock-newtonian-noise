@@ -3,8 +3,10 @@
 These tests control the sensor model against the field's own steering primitive
 and against exact algebra (quantity transfers, timing phases, correlated-noise
 ranks), and they pin the nested-array invariants the design requires: the
-aperture and every per-sensor property are fixed across ``N``, and the manifest
-reports the raw sensor count and the effective rank separately.
+aperture ceiling and every per-sensor property are fixed across ``N``; in
+fixed-aperture mode the realized radius and span are fixed across ``N`` too; and
+the manifest reports the raw sensor count and the effective rank separately, and
+the realized radius next to the aperture ceiling.
 
 All numeric fixtures are UNANCHORED illustrative values chosen only to exercise
 the code, not a representative ET sensor deployment.
@@ -21,9 +23,11 @@ from gwmock_newtonian.witness.array import (
     CorrelatedNoise,
     DiagonalNoise,
     ExplicitNoise,
+    NestedArrayMode,
     WitnessArray,
     effective_rank,
     nested_disk_array,
+    nested_site_order,
     participation_ratio,
     sunflower_positions,
 )
@@ -243,39 +247,68 @@ class TestNoiseModels:
         assert participation_ratio(2.0 * np.eye(4)) == pytest.approx(4.0)
 
 
-class TestNestedDiskArray:
-    """Nesting, fixed aperture and fixed per-sensor quality across N."""
+_MODES = (NestedArrayMode.FIXED_APERTURE, NestedArrayMode.GROWING_SPAN)
 
-    def test_positions_are_nested(self) -> None:
-        """The N-sensor array is exactly the first N positions of the master sequence."""
-        master = np.array(nested_disk_array(12, aperture=800.0, max_sensors=12).positions())
+
+def _pairwise_horizontal_span(positions) -> float:
+    """Return the largest horizontal pairwise distance, by an explicit double loop."""
+    span = 0.0
+    for first in positions:
+        for second in positions:
+            span = max(span, float(np.hypot(first[0] - second[0], first[1] - second[1])))
+    return span
+
+
+class TestNestedDiskArray:
+    """Nesting, fixed aperture ceiling and fixed per-sensor quality across N, in both modes."""
+
+    @pytest.mark.parametrize("mode", _MODES)
+    def test_positions_are_nested(self, mode: NestedArrayMode) -> None:
+        """The N-sensor array is exactly the first N positions of the N_max member."""
+        master = np.array(nested_disk_array(12, aperture=800.0, max_sensors=12, mode=mode).positions())
         for count in (1, 2, 5, 12):
-            member = np.array(nested_disk_array(count, aperture=800.0, max_sensors=12).positions())
+            member = np.array(nested_disk_array(count, aperture=800.0, max_sensors=12, mode=mode).positions())
             np.testing.assert_array_equal(member, master[:count])
 
-    def test_every_sensor_lies_within_the_fixed_aperture(self) -> None:
-        """Every position is strictly inside the aperture for every N."""
+    @pytest.mark.parametrize("mode", _MODES)
+    def test_positions_are_master_sites_in_the_mode_order(self, mode: NestedArrayMode) -> None:
+        """Every member occupies master sites; the full member occupies each site exactly once."""
+        sites = np.array(sunflower_positions(12, 800.0))
+        order = nested_site_order(12, 800.0, mode)
+        assert sorted(order) == list(range(12))
         for count in (1, 4, 12):
-            array = nested_disk_array(count, aperture=800.0, max_sensors=12)
+            member = np.array(nested_disk_array(count, aperture=800.0, max_sensors=12, mode=mode).positions())
+            np.testing.assert_array_equal(member, sites[list(order[:count])])
+
+    @pytest.mark.parametrize("mode", _MODES)
+    def test_every_sensor_lies_within_the_fixed_aperture(self, mode: NestedArrayMode) -> None:
+        """Every position is strictly inside the aperture ceiling for every N."""
+        for count in (1, 4, 12):
+            array = nested_disk_array(count, aperture=800.0, max_sensors=12, mode=mode)
             radii = np.linalg.norm(np.array(array.positions())[:, :2], axis=1)
             assert np.all(radii < 800.0)
             assert array.aperture == 800.0
 
-    def test_per_sensor_quality_is_fixed_across_n(self) -> None:
+    @pytest.mark.parametrize("mode", _MODES)
+    def test_per_sensor_quality_is_fixed_across_n(self, mode: NestedArrayMode) -> None:
         """Quantity, response, calibration, self-noise, timing and axis rule do not change with N."""
-        small = nested_disk_array(3, aperture=500.0, max_sensors=10, calibration=0.7 - 0.2j, timing_offset=1e-4)
-        large = nested_disk_array(10, aperture=500.0, max_sensors=10, calibration=0.7 - 0.2j, timing_offset=1e-4)
+        kwargs = {"aperture": 500.0, "max_sensors": 10, "mode": mode, "calibration": 0.7 - 0.2j, "timing_offset": 1e-4}
+        small = nested_disk_array(3, **kwargs)
+        large = nested_disk_array(10, **kwargs)
         for index in range(3):
             first, second = small.sensors[index], large.sensors[index]
+            assert first.name == second.name
+            assert first.position == second.position
             assert first.quantity is second.quantity
             assert first.calibration == second.calibration
             assert first.timing_offset == second.timing_offset
             assert first.transfer(2.0) == second.transfer(2.0)
             np.testing.assert_allclose(first.unit_orientation, second.unit_orientation, atol=0.0)
 
-    def test_radial_orientation_is_horizontal_and_unit(self) -> None:
+    @pytest.mark.parametrize("mode", _MODES)
+    def test_radial_orientation_is_horizontal_and_unit(self, mode: NestedArrayMode) -> None:
         """The radial axis rule gives a horizontal unit vector at every sensor."""
-        array = nested_disk_array(6, aperture=400.0, max_sensors=6)
+        array = nested_disk_array(6, aperture=400.0, max_sensors=6, mode=mode)
         for sensor in array.sensors:
             axis = sensor.unit_orientation
             assert axis[2] == 0.0
@@ -283,12 +316,25 @@ class TestNestedDiskArray:
 
     def test_rejects_invalid_sizes_and_aperture(self) -> None:
         """N must lie in [1, max_sensors] and the aperture must be positive."""
+        mode = NestedArrayMode.FIXED_APERTURE
         with pytest.raises(ValueError, match="n_sensors"):
-            nested_disk_array(0, aperture=10.0, max_sensors=4)
+            nested_disk_array(0, aperture=10.0, max_sensors=4, mode=mode)
         with pytest.raises(ValueError, match="max_sensors"):
-            nested_disk_array(5, aperture=10.0, max_sensors=4)
+            nested_disk_array(5, aperture=10.0, max_sensors=4, mode=mode)
         with pytest.raises(ValueError, match="aperture"):
-            nested_disk_array(2, aperture=0.0, max_sensors=4)
+            nested_disk_array(2, aperture=0.0, max_sensors=4, mode=mode)
+
+    def test_mode_has_no_default_and_must_be_known(self) -> None:
+        """An N scan cannot silently get either mode: the mode must be named and valid."""
+        with pytest.raises(TypeError, match="mode"):
+            nested_disk_array(2, aperture=10.0, max_sensors=4)  # type: ignore[call-arg]
+        with pytest.raises(ValueError, match="nested"):
+            nested_disk_array(2, aperture=10.0, max_sensors=4, mode="nested")
+        with pytest.raises(ValueError, match="nested"):
+            nested_site_order(4, 10.0, "nested")
+        string_mode = nested_disk_array(2, aperture=10.0, max_sensors=4, mode="fixed_aperture")
+        enum_mode = nested_disk_array(2, aperture=10.0, max_sensors=4, mode=NestedArrayMode.FIXED_APERTURE)
+        assert string_mode.positions() == enum_mode.positions()
 
     def test_sunflower_sequence_is_aperture_bounded(self) -> None:
         """The master sequence never exceeds the aperture, for any length."""
@@ -299,12 +345,137 @@ class TestNestedDiskArray:
             sunflower_positions(0, 2.0)
 
 
+class TestFixedApertureMode:
+    """In fixed-aperture mode an N scan changes sensor density, never the realized span.
+
+    Stated tolerance: the realized radius is the master sequence's outer radius
+    ``aperture * sqrt(1 - 1 / (2 * max_sensors))`` for every N, so its relative
+    shortfall from the ceiling is at most ``1 / (2 * max_sensors)``; it is
+    compared to that closed form at ``rtol=1e-12`` and is bit-identical across N.
+    """
+
+    @pytest.mark.parametrize("max_sensors", [1, 2, 3, 12, 50, 137])
+    def test_n_scan_keeps_the_realized_radius_at_the_aperture(self, max_sensors: int) -> None:
+        """Every N from 1 to max_sensors has the same realized radius, within the stated tolerance."""
+        aperture = 800.0
+        expected = aperture * np.sqrt(1.0 - 1.0 / (2.0 * max_sensors))
+        radii = [
+            nested_disk_array(count, aperture=aperture, max_sensors=max_sensors, mode="fixed_aperture")
+            .manifest()
+            .realized_radius
+            for count in range(1, max_sensors + 1)
+        ]
+        assert len(set(radii)) == 1
+        np.testing.assert_allclose(radii[0], expected, rtol=1e-12, atol=0.0)
+        assert 1.0 - radii[0] / aperture <= 1.0 / (2.0 * max_sensors)
+
+    def test_n_scan_values_named_by_the_problem_statement(self) -> None:
+        """At aperture 800 m, max_sensors 12: fixed-aperture holds ~783 m where growing span gives ~163/432/783 m."""
+        for count, growing in ((1, 163.3), (4, 432.0), (12, 783.2)):
+            fixed_manifest = nested_disk_array(count, aperture=800.0, max_sensors=12, mode="fixed_aperture").manifest()
+            growing_manifest = nested_disk_array(count, aperture=800.0, max_sensors=12, mode="growing_span").manifest()
+            assert fixed_manifest.aperture == growing_manifest.aperture == 800.0
+            assert fixed_manifest.realized_radius == pytest.approx(783.2, abs=0.05)
+            assert growing_manifest.realized_radius == pytest.approx(growing, abs=0.05)
+
+    @pytest.mark.parametrize("max_sensors", [2, 3, 5, 12, 50, 137, 300])
+    def test_n_scan_keeps_the_realized_span_of_the_full_array(self, max_sensors: int) -> None:
+        """Every N >= 2 already spans the full master array: the first two sites are its diameter."""
+        full = _pairwise_horizontal_span(sunflower_positions(max_sensors, 800.0))
+        for count in sorted(n for n in {2, 3, max_sensors // 2, max_sensors} if 2 <= n <= max_sensors):
+            array = nested_disk_array(count, aperture=800.0, max_sensors=max_sensors, mode="fixed_aperture")
+            np.testing.assert_allclose(array.realized_span(), full, rtol=1e-12, atol=0.0)
+
+    def test_order_is_farthest_point_from_the_outermost_site(self) -> None:
+        """Site 0 is outermost; each later site is farthest from the sites already active."""
+        center = (30.0, -20.0)
+        sites = np.array(sunflower_positions(40, 500.0, center=center))[:, :2]
+        order = nested_site_order(40, 500.0, NestedArrayMode.FIXED_APERTURE, center=center)
+        radii = np.hypot(sites[:, 0] - center[0], sites[:, 1] - center[1])
+        assert radii[order[0]] == np.max(radii)
+        for step in range(1, len(order)):
+            chosen = sites[list(order[:step])]
+            gap = [float(np.min(np.hypot(*(chosen - site).T))) for site in sites]
+            remaining = [gap[index] for index in order[step:]]
+            assert gap[order[step]] == max(remaining)
+
+    def test_growing_span_mode_is_the_identity_order(self) -> None:
+        """Growing-span mode takes the master sequence in its own order, so its radius grows with N."""
+        assert nested_site_order(9, 100.0, NestedArrayMode.GROWING_SPAN) == tuple(range(9))
+        radii = [
+            nested_disk_array(count, aperture=100.0, max_sensors=9, mode="growing_span").realized_radius()
+            for count in range(1, 10)
+        ]
+        assert radii == sorted(radii)
+        assert radii[0] < 0.5 * radii[-1]
+
+
+class TestRealizedGeometry:
+    """The manifest's realized radius and span match the stored positions in every mode."""
+
+    @pytest.mark.parametrize("mode", _MODES)
+    def test_realized_fields_match_the_recorded_positions(self, mode: NestedArrayMode) -> None:
+        """Realized radius and span recomputed from the manifest's own sensor records agree exactly."""
+        center = (120.0, -45.0)
+        array = nested_disk_array(7, aperture=600.0, max_sensors=11, mode=mode, center=center, depth=250.0)
+        manifest = array.with_missing(("W0", "W3")).manifest()
+        declared = [record.position for record in manifest.sensors]
+        active = [record.position for record in manifest.sensors if record.present]
+        assert manifest.mode == mode.value
+        assert manifest.center == center
+        for positions, radius, span in (
+            (declared, manifest.realized_radius, manifest.realized_span),
+            (active, manifest.active_realized_radius, manifest.active_realized_span),
+        ):
+            expected_radius = max(float(np.hypot(p[0] - center[0], p[1] - center[1])) for p in positions)
+            assert radius == pytest.approx(expected_radius, rel=1e-14, abs=0.0)
+            assert span == pytest.approx(_pairwise_horizontal_span(positions), rel=1e-14, abs=0.0)
+        assert manifest.realized_radius <= manifest.aperture
+
+    def test_missing_outermost_sensor_shrinks_only_the_active_radius(self) -> None:
+        """Masking the fixed-aperture outer site reduces the active radius, not the declared one."""
+        array = nested_disk_array(5, aperture=400.0, max_sensors=5, mode="fixed_aperture").with_missing(("W0",))
+        record = array.manifest()
+        assert record.active_realized_radius < record.realized_radius
+        assert record.realized_radius == pytest.approx(400.0 * np.sqrt(0.9), rel=1e-12, abs=0.0)
+
+    def test_explicit_array_reports_realized_geometry_without_an_aperture(self) -> None:
+        """An explicit array has no ceiling but still reports radius from its centre, and span."""
+        sensors = (
+            WitnessSensor(name="A", position=(3.0, 4.0, 10.0)),
+            WitnessSensor(name="B", position=(-3.0, 4.0, 0.0)),
+        )
+        manifest = WitnessArray(sensors=sensors).manifest()
+        assert manifest.aperture is None
+        assert manifest.mode == "explicit"
+        assert manifest.center == (0.0, 0.0)
+        assert manifest.realized_radius == 5.0
+        assert manifest.realized_span == 6.0
+
+    def test_empty_and_single_sensor_sets_have_zero_span(self) -> None:
+        """No sensors give zero radius and span; one sensor gives zero span."""
+        single = WitnessArray(sensors=(WitnessSensor(name="A", position=(3.0, 4.0, 0.0)),))
+        assert single.realized_span() == 0.0
+        assert single.realized_radius() == 5.0
+        empty = single.with_missing(("A",))
+        assert empty.realized_radius(active_only=True) == 0.0
+        assert empty.realized_span(active_only=True) == 0.0
+
+    def test_rejects_a_malformed_center(self) -> None:
+        """The centre must be a finite horizontal pair."""
+        sensors = (WitnessSensor(name="A", position=(0.0, 0.0, 0.0)),)
+        with pytest.raises(ValueError, match="center"):
+            WitnessArray(sensors=sensors, center=(0.0, 0.0, 0.0))  # type: ignore[arg-type]
+        with pytest.raises(ValueError, match="center"):
+            WitnessArray(sensors=sensors, center=(float("nan"), 0.0))
+
+
 class TestMissingChannels:
     """A missing-channel mask drops sensors from channels, covariances and manifests."""
 
     def _array(self) -> WitnessArray:
         """Return a four-sensor nested array with equal UNANCHORED self-noise."""
-        return nested_disk_array(4, aperture=300.0, max_sensors=4, self_noise_psd=_flat_psd)
+        return nested_disk_array(4, aperture=300.0, max_sensors=4, mode="fixed_aperture", self_noise_psd=_flat_psd)
 
     def test_missing_sensors_are_dropped_from_channels(self) -> None:
         """The active channel list excludes the missing names."""
@@ -337,6 +508,7 @@ class TestArrayManifest:
             4,
             aperture=250.0,
             max_sensors=4,
+            mode="fixed_aperture",
             self_noise_psd=_flat_psd,
             calibration=1.5 - 0.25j,
             timing_offset=2e-3,
@@ -402,12 +574,16 @@ class TestArrayValidation:
             WitnessArray(sensors=(WitnessSensor(name="W", position=(0.0, 0.0, 0.0)),), aperture=-1.0)
 
     def test_permuted_reorders_sensors_and_preserves_metadata(self) -> None:
-        """Permuting the sensors preserves the aperture and nesting rule."""
-        array = nested_disk_array(4, aperture=200.0, max_sensors=4)
+        """Permuting or masking the sensors preserves the aperture, nesting rule, mode and centre."""
+        array = nested_disk_array(4, aperture=200.0, max_sensors=4, mode="fixed_aperture", center=(5.0, 6.0))
         permuted = array.permuted((3, 1, 0, 2))
         assert permuted.channel_names == ("W3", "W1", "W0", "W2")
-        assert permuted.aperture == array.aperture
-        assert permuted.nesting_rule == array.nesting_rule
+        for copy in (permuted, array.with_missing(("W1",))):
+            assert copy.aperture == array.aperture
+            assert copy.nesting_rule == array.nesting_rule
+            assert copy.mode == array.mode == "fixed_aperture"
+            assert copy.center == array.center == (5.0, 6.0)
+        assert "fixed_aperture" in array.nesting_rule
         with pytest.raises(ValueError, match="permutation"):
             array.permuted((0, 0, 1, 2))
 

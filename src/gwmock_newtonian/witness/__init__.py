@@ -3,8 +3,9 @@
 Public subpackage implementing the witness physics: sensors with an
 explicit measured quantity, position, orientation, complex frequency-dependent
 response, calibration, self-noise, timing offset and array-level correlated
-noise; missing channels; nested aperture-fixed benchmark arrays with manifests
-that report raw count and effective rank separately; and the joint
+noise; missing channels; nested benchmark arrays in a named fixed-aperture or
+growing-span mode, with manifests that report raw count and effective rank
+separately and the realized radius next to the aperture ceiling; and the joint
 strain--witness covariance and realization built by reusing the detector
 response operator.
 """
@@ -16,11 +17,13 @@ from gwmock_newtonian.witness.array import (
     CorrelatedNoise,
     DiagonalNoise,
     ExplicitNoise,
+    NestedArrayMode,
     NoiseModel,
     SensorManifest,
     WitnessArray,
     effective_rank,
     nested_disk_array,
+    nested_site_order,
     participation_ratio,
     sunflower_positions,
 )
@@ -52,6 +55,7 @@ __all__ = [
     "DiagonalNoise",
     "ExplicitNoise",
     "JointStrainWitnessCovariance",
+    "NestedArrayMode",
     "NoiseModel",
     "PSDCallable",
     "SensorManifest",
@@ -65,6 +69,7 @@ __all__ = [
     "joint_mode_responses",
     "joint_strain_covariance_block",
     "nested_disk_array",
+    "nested_site_order",
     "participation_ratio",
     "quantity_transfer",
     "realize_joint",

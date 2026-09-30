@@ -119,7 +119,7 @@ def _detector_config(**overrides) -> DetectorResponseConfig:
 
 def _array(count: int = 4, **overrides) -> WitnessArray:
     """Return a nested UNANCHORED witness array."""
-    kwargs = {"aperture": 400.0, "max_sensors": max(count, 4)}
+    kwargs = {"aperture": 400.0, "max_sensors": max(count, 4), "mode": "fixed_aperture"}
     kwargs.update(overrides)
     return nested_disk_array(count, **kwargs)
 
