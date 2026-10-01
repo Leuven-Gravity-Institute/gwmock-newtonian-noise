@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from gwmock_newtonian.rng import RNG_BIT_GENERATOR, create_generator
+from gwmock_newtonian.rng import RNG_BIT_GENERATOR, create_generator, segment_seed_sequence
 
 pytestmark = pytest.mark.unit
 
@@ -52,3 +52,18 @@ def test_continuation_matches_one_shot_draw() -> None:
     combined = one_shot.standard_normal(10)
 
     np.testing.assert_array_equal(np.concatenate([first_chunk, second_chunk]), combined)
+
+
+def test_segment_seed_sequences_are_independent_children_of_the_root() -> None:
+    """Segment ``k`` is the ``k``-th spawned child of ``SeedSequence(entropy)``, reachable directly."""
+    children = np.random.SeedSequence(5).spawn(3)
+    for segment, child in enumerate(children):
+        np.testing.assert_array_equal(segment_seed_sequence(5, segment).generate_state(4), child.generate_state(4))
+    draws = [create_generator(segment_seed_sequence(5, k)).standard_normal(8) for k in range(3)]
+    assert not np.array_equal(draws[0], draws[1])
+
+
+def test_segment_seed_sequence_rejects_a_negative_segment() -> None:
+    """There is no segment before the first."""
+    with pytest.raises(ValueError, match="non-negative"):
+        segment_seed_sequence(5, -1)

@@ -89,6 +89,27 @@ class TestSensorModel:
         sensor = WitnessSensor(name="W", position=(0.0, 0.0, 0.0), orientation=(0.0, 0.0, 3.0))
         np.testing.assert_allclose(sensor.unit_orientation, [0.0, 0.0, 1.0], atol=0.0)
 
+    @pytest.mark.parametrize(
+        ("quantity", "unit"),
+        [
+            (SensorQuantity.DISPLACEMENT, "m"),
+            (SensorQuantity.VELOCITY, "m/s"),
+            (SensorQuantity.ACCELERATION, "m/s^2"),
+        ],
+    )
+    def test_default_unit_is_the_si_unit_of_the_quantity(self, quantity: SensorQuantity, unit: str) -> None:
+        """Without an explicit output unit, a sensor reports in the SI unit of what it measures."""
+        assert WitnessSensor(name="W", position=(0.0, 0.0, 0.0), quantity=quantity).unit == unit
+
+    def test_explicit_output_unit_overrides_the_quantity_unit(self) -> None:
+        """A non-dimensionless calibration or response carries its own declared unit."""
+        sensor = WitnessSensor(
+            name="W", position=(0.0, 0.0, 0.0), quantity=SensorQuantity.VELOCITY, output_unit="counts"
+        )
+        assert sensor.unit == "counts"
+        with pytest.raises(ValueError, match="output_unit"):
+            WitnessSensor(name="W", position=(0.0, 0.0, 0.0), output_unit="")
+
     def test_rejects_a_zero_orientation(self) -> None:
         """A zero sensing axis cannot define a projection."""
         with pytest.raises(ValueError, match="non-zero"):
@@ -529,6 +550,14 @@ class TestArrayManifest:
         assert record.self_noise_psd_at_reference == 1.0
         assert record.present is True
         assert "constant_response" in record.response_name
+        assert record.unit == "m"
+
+    def test_manifest_records_a_declared_output_unit(self) -> None:
+        """A nested array's shared output unit reaches every sensor record and the JSON payload."""
+        array = nested_disk_array(2, aperture=250.0, max_sensors=2, mode="fixed_aperture", output_unit="counts")
+        manifest = array.manifest(reference_frequency=2.0)
+        assert [record.unit for record in manifest.sensors] == ["counts", "counts"]
+        assert manifest.to_dict()["sensors"][1]["unit"] == "counts"
 
     def test_manifest_is_json_serializable(self) -> None:
         """The manifest converts to a JSON-serializable dictionary with complex pairs."""

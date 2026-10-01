@@ -24,6 +24,16 @@ detector's covariance, so the joint matrix is Hermitian positive-semidefinite by
 construction. Witness self-noise and correlated sensor noise are added to the
 witness block only: they are independent of the field and of the strains.
 
+Cross-spectrum sign convention: a channel's time series is
+``Re(c exp(-i omega t))`` for a complex mode coefficient ``c``, so the
+:func:`numpy.fft.rfft` of a sampled channel is proportional to ``conj(c)``.
+``C_ab = E[c_a conj(c_b)]`` is therefore estimated from realizations by
+``(2 / (fs N)) E[conj(X_a) X_b]`` -- the convention of
+``scipy.signal.csd(x_a, x_b)`` -- and *not* by ``X_a conj(X_b)``, which is its
+complex conjugate. The two agree only where the cross-spectrum is real, which an
+isotropic field with untimed sensors makes it; a timing offset or an anisotropic
+field exposes the difference.
+
 Sampled realizations use the spectral-representation method already used by
 :func:`~gwmock_newtonian.seismic.field.realize`: one independent random-phase
 complex amplitude is drawn per excited (frequency, azimuth) cell and shared by
@@ -294,6 +304,8 @@ def joint_covariance(
     detector_config: DetectorResponseConfig,
     array: WitnessArray,
     manifest_frequency: float = 1.0,
+    *,
+    responses: NDArray[np.complex128] | None = None,
 ) -> JointStrainWitnessCovariance:
     """Return the joint strain--witness one-sided covariance including array noise.
 
@@ -306,6 +318,10 @@ def joint_covariance(
             shared latent field).
         array: The witness array.
         manifest_frequency: Frequency at which the array manifest is evaluated.
+        responses: Precomputed :func:`joint_mode_responses` on ``frequencies``
+            for the same configuration and array, or ``None`` to compute them.
+            Passing the matrix a realization is synthesized from makes the
+            covariance and the realization share one response by construction.
 
     Returns:
         The :class:`JointStrainWitnessCovariance`.
@@ -319,10 +335,14 @@ def joint_covariance(
         raise ValueError(
             f"detector and witness channel names must be disjoint, got {detector_names} and {witness_names}."
         )
-    responses = joint_mode_responses(frequencies, detector_config, array)
-    matrix = _assemble_covariance(responses, frequencies, field)
     n_detector = geometry.n_detectors
     n_witness = len(witness_names)
+    if responses is None:
+        responses = joint_mode_responses(frequencies, detector_config, array)
+    expected = (frequencies.size, _azimuth_count(field), n_detector + n_witness)
+    if responses.shape != expected:
+        raise ValueError(f"responses must have shape {expected}, got {responses.shape}.")
+    matrix = _assemble_covariance(responses, frequencies, field)
     for index, frequency in enumerate(frequencies):
         if frequency <= 0.0 or n_witness == 0:
             continue
@@ -344,7 +364,7 @@ def synthesize_joint(  # noqa: PLR0913, PLR0917 -- one parameter per physically 
     array: WitnessArray,
     duration: float,
     sampling_frequency: float,
-    seed: int | None,
+    seed: int | np.random.SeedSequence | None,
 ) -> dict[str, NDArray[np.float64]]:
     """Synthesize a joint strain--witness realization from precomputed responses.
 
@@ -361,7 +381,8 @@ def synthesize_joint(  # noqa: PLR0913, PLR0917 -- one parameter per physically 
         array: The witness array.
         duration: Realization duration in seconds, strictly positive.
         sampling_frequency: Sampling frequency in hertz, strictly positive.
-        seed: Integer seed for reproducibility, or ``None``.
+        seed: Integer seed or :class:`numpy.random.SeedSequence` for
+            reproducibility, or ``None``.
 
     Returns:
         A dict mapping every channel name to a real ``(n_samples,)`` time series.
@@ -418,7 +439,7 @@ def realize_joint(
     array: WitnessArray,
     duration: float,
     sampling_frequency: float,
-    seed: int | None,
+    seed: int | np.random.SeedSequence | None,
 ) -> dict[str, NDArray[np.float64]]:
     """Synthesize a joint strain--witness realization, computing the responses.
 
@@ -431,7 +452,8 @@ def realize_joint(
         array: The witness array.
         duration: Realization duration in seconds, strictly positive.
         sampling_frequency: Sampling frequency in hertz, strictly positive.
-        seed: Integer seed for reproducibility, or ``None``.
+        seed: Integer seed or :class:`numpy.random.SeedSequence` for
+            reproducibility, or ``None``.
 
     Returns:
         A dict mapping every channel name to a real ``(n_samples,)`` time series.

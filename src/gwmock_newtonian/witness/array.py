@@ -322,6 +322,7 @@ class SensorManifest:
     position: tuple[float, float, float]
     orientation: tuple[float, float, float]
     quantity: SensorQuantity
+    unit: str
     calibration: complex
     timing_offset: float
     response_name: str
@@ -336,6 +337,7 @@ class SensorManifest:
             "position": list(self.position),
             "orientation": list(self.orientation),
             "quantity": str(self.quantity),
+            "unit": self.unit,
             "calibration": [self.calibration.real, self.calibration.imag],
             "timing_offset": self.timing_offset,
             "response_name": self.response_name,
@@ -580,6 +582,7 @@ class WitnessArray:
                 position=sensor.position,
                 orientation=tuple(float(value) for value in sensor.unit_orientation),
                 quantity=sensor.quantity,
+                unit=sensor.unit,
                 calibration=complex(sensor.calibration),
                 timing_offset=sensor.timing_offset,
                 response_name=getattr(sensor.response, "__name__", repr(sensor.response)),
@@ -718,6 +721,7 @@ def nested_disk_array(  # noqa: PLR0913 -- one parameter per physically distinct
     calibration: complex = 1.0 + 0.0j,
     self_noise_psd: PSDCallable | None = None,
     timing_offset: float = 0.0,
+    output_unit: str | None = None,
     orientation: str | tuple[float, float, float] = "radial",
     noise: NoiseModel | None = None,
     name_prefix: str = "W",
@@ -747,6 +751,8 @@ def nested_disk_array(  # noqa: PLR0913 -- one parameter per physically distinct
         calibration: Complex calibration, shared by every sensor.
         self_noise_psd: Self-noise PSD, shared by every sensor; ``None`` is noiseless.
         timing_offset: Timing offset in seconds, shared by every sensor.
+        output_unit: Output unit, shared by every sensor; ``None`` uses the SI
+            unit of ``quantity``.
         orientation: ``"radial"`` (default) for the horizontal outward axis at
             each position, or an explicit unit axis shared by every sensor.
         noise: Array noise model; defaults to :class:`DiagonalNoise`.
@@ -782,6 +788,7 @@ def nested_disk_array(  # noqa: PLR0913 -- one parameter per physically distinct
                 calibration=calibration,
                 self_noise_psd=self_noise_psd,
                 timing_offset=timing_offset,
+                output_unit=output_unit,
             )
         )
     return WitnessArray(

@@ -267,11 +267,11 @@ class TestJointCovarianceStructure:
 class TestMonteCarloConvergence:
     """Analytic cross-covariances agree with sampled realizations, block by block.
 
-    The estimator is the one-sided folded periodogram of a seeded
-    spectral-representation realization, averaged over ``_MC_REALIZATIONS``
-    seeds. The strain--strain, strain--witness and witness--witness blocks are
-    scored and asserted separately; the pooled norm is reported only as a
-    supplemental summary. The strain--witness threshold is derived from the
+    The estimator is the one-sided folded periodogram ``conj(X_a) X_b`` of a
+    seeded spectral-representation realization, averaged over
+    ``_MC_REALIZATIONS`` seeds. The strain--strain, strain--witness and
+    witness--witness blocks are scored and asserted separately; the pooled norm
+    is reported only as a supplemental summary. The strain--witness threshold is derived from the
     fixture's coherence (see ``_MC_CROSS_SIGMAS``), and a normalized residual
     ratio guards the cross block independently of that threshold.
     """
@@ -288,7 +288,9 @@ class TestMonteCarloConvergence:
             signals = synthesize_joint(responses, config, array, _DURATION, _SAMPLING_FREQUENCY, seed)
             order = (*config.layout.geometry.names, *array.channel_names)
             spectra = np.array([np.fft.rfft(signals[name]) for name in order])
-            periodogram = one_sided[None, None, :] * spectra[:, None, :] * spectra.conj()[None, :, :]
+            # conj(X_a) X_b: a channel is Re(c exp(-i omega t)), so its rfft is
+            # proportional to conj(c) and C_ab = E[c_a conj(c_b)] (scipy.signal.csd order).
+            periodogram = one_sided[None, None, :] * spectra.conj()[:, None, :] * spectra[None, :, :]
             accumulator += np.transpose(periodogram, (2, 0, 1))
         return accumulator / seeds
 
@@ -353,6 +355,33 @@ class TestMonteCarloConvergence:
         )
         assert strain_error < _MC_AUTO_TOLERANCE, context
         assert witness_error < _MC_AUTO_TOLERANCE, context
+        assert cross_error < cross_tolerance, context
+        assert cross_ratio < _MC_CROSS_RATIO_MAX, context
+
+    def test_cross_block_phases_converge_with_a_timing_offset(self) -> None:
+        """A timing offset makes the strain--witness block complex; its phase must still converge.
+
+        With untimed sensors in an isotropic field the cross block is real, so
+        an estimator that conjugates it (``X_a conj(X_b)`` instead of
+        ``conj(X_a) X_b``) scores identically and the convergence check above
+        cannot see the sign convention. A 50 ms offset gives the cross block an
+        imaginary part of ~8% of its norm, which the conjugated estimator turns
+        into a residual far outside the sampling bound.
+        """
+        config = _detector_config()
+        array = _array(4, self_noise_psd=None, timing_offset=0.05)
+        frequencies = _frequency_grid()
+        responses = joint_mode_responses(frequencies, config, array)
+        joint = joint_covariance(frequencies, config, array)
+        interior = self._interior()
+        cross = joint.cross_block()[interior]
+        assert np.linalg.norm(cross.imag) > 0.05 * np.linalg.norm(cross)
+        empirical = self._empirical(config, array, responses, _MC_REALIZATIONS)
+        coherence = self._power_weighted_coherence(joint, interior)
+        cross_error = self._relative_error(joint.cross_block(), empirical[:, :3, 3:], interior)
+        cross_tolerance = _MC_CROSS_SIGMAS / (coherence * np.sqrt(_MC_REALIZATIONS))
+        cross_ratio = self._cross_residual_ratio(joint, empirical[:, :3, 3:], _MC_REALIZATIONS, interior)
+        context = f"strain-witness={cross_error:.4f} (tolerance {cross_tolerance:.4f}), cross ratio={cross_ratio:.3f}"
         assert cross_error < cross_tolerance, context
         assert cross_ratio < _MC_CROSS_RATIO_MAX, context
 

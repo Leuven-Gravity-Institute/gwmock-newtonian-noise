@@ -52,6 +52,7 @@ nav = [
     { "RNG policy" = "api/rng.md" },
     { "Provenance" = "api/provenance.md" },
     { "Covariance" = "api/covariance.md" },
+    { "Joint simulator" = "api/joint.md" },
     { "Simulator" = "api/simulator.md" },
     { "Compatibility adapter" = "api/adapter.md" },
     { "Utility" = [

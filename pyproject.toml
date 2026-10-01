@@ -51,6 +51,7 @@ gwmock-newtonian = "gwmock_newtonian.cli.main:app"
 
 [project.entry-points."gwmock_noise.joint_backends"]
 newtonian_scaffold = "gwmock_newtonian.simulator:NewtonianScaffoldSimulator"
+newtonian_rayleigh = "gwmock_newtonian.joint:NewtonianJointSimulator"
 
 [project.urls]
 Documentation = "https://isaac-cf-wong.github.io/gwmock-newtonian"

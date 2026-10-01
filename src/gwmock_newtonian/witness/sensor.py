@@ -70,6 +70,15 @@ class SensorQuantity(StrEnum):
     ACCELERATION = "acceleration"
 
 
+#: SI unit of each kinematic quantity, the output unit of a sensor whose
+#: calibration and instrument response are dimensionless.
+QUANTITY_SI_UNITS: dict[SensorQuantity, str] = {
+    SensorQuantity.DISPLACEMENT: "m",
+    SensorQuantity.VELOCITY: "m/s",
+    SensorQuantity.ACCELERATION: "m/s^2",
+}
+
+
 def unit_response(frequency: float) -> complex:
     """Return the identity instrument response, ``1`` at every frequency."""
     del frequency
@@ -143,6 +152,10 @@ class WitnessSensor:
             or ``None`` for a noiseless sensor. Must return non-negative values.
         timing_offset: Documented timing offset ``tau`` in seconds; the channel
             records ``x(t - tau)`` and its spectrum carries ``exp(+i * omega * tau)``.
+        output_unit: Unit of the channel's samples, or ``None`` for the SI unit
+            of ``quantity`` (see :data:`QUANTITY_SI_UNITS`). Set it whenever
+            ``calibration`` or ``response`` is not dimensionless, e.g.
+            ``"counts"`` for a response in counts per metre.
     """
 
     name: str
@@ -153,6 +166,7 @@ class WitnessSensor:
     calibration: complex = 1.0 + 0.0j
     self_noise_psd: PSDCallable | None = None
     timing_offset: float = 0.0
+    output_unit: str | None = None
 
     def __post_init__(self) -> None:
         """Validate the identifier, geometry, response and self-noise callables."""
@@ -171,6 +185,13 @@ class WitnessSensor:
             raise TypeError("WitnessSensor.self_noise_psd must be callable or None.")
         if not np.isfinite(self.timing_offset):
             raise ValueError(f"WitnessSensor.timing_offset must be finite, got {self.timing_offset}.")
+        if self.output_unit is not None and not self.output_unit:
+            raise ValueError("WitnessSensor.output_unit must be non-empty or None.")
+
+    @property
+    def unit(self) -> str:
+        """Return the unit of the channel's samples."""
+        return self.output_unit if self.output_unit is not None else QUANTITY_SI_UNITS[self.quantity]
 
     @property
     def unit_orientation(self) -> np.ndarray:
@@ -223,6 +244,7 @@ class WitnessSensor:
 
 
 __all__ = [
+    "QUANTITY_SI_UNITS",
     "ComplexResponse",
     "PSDCallable",
     "SensorQuantity",
