@@ -40,7 +40,7 @@ In both modes the nesting rule is exact and testable:
 
 Changing ``N`` therefore changes only which of the fixed sites are active and
 the aggregate array quality; the latter is made explicit, not silent, by the
-manifest's raw count, effective rank and participation ratio. The manifest also
+manifest's raw count, noise effective rank and participation ratio. The manifest also
 records the mode and the *realized* horizontal radius and span next to the
 ``aperture`` ceiling, so a change of span with ``N`` is never hidden behind a
 constant ceiling.
@@ -54,6 +54,13 @@ model gives rank ``N``; a noise model whose channels are strongly correlated at
 a length scale much larger than the array aperture is numerically rank one
 despite ``N`` raw channels. The manifest reports the raw count and the effective
 rank *separately* so the two are never conflated.
+
+The manifest's rank is ``noise_effective_rank``: the rank of the noise matrix
+alone, which is ``0`` for a noiseless array. It is not the rank of the
+field-plus-noise covariance that
+:meth:`~gwmock_newtonian.witness.response.WitnessCovariance.effective_rank`
+reports, which for the same noiseless array is set by the seismic field and is
+generally ``N``.
 
 All numeric fixtures reachable from this module's tests are UNANCHORED
 illustrative values, not a representative ET sensor deployment.
@@ -372,9 +379,12 @@ class ArrayManifest:
         raw_sensor_count: Number of sensors declared, including missing ones.
         active_sensor_count: Number of present (non-missing) sensors.
         raw_channel_count: Number of active sensor channels.
-        effective_rank: Effective rank of the active noise covariance.
+        noise_effective_rank: Effective rank of the active *noise* covariance
+            alone, excluding the seismic field; ``0`` for a noiseless array.
+            Not the field-plus-noise rank of
+            :meth:`~gwmock_newtonian.witness.response.WitnessCovariance.effective_rank`.
         participation_ratio: Participation ratio of the active noise covariance.
-        rank_rtol: Relative eigenvalue threshold used for ``effective_rank``.
+        rank_rtol: Relative eigenvalue threshold used for ``noise_effective_rank``.
         sensors: Per-sensor records, in array order.
     """
 
@@ -390,7 +400,7 @@ class ArrayManifest:
     raw_sensor_count: int
     active_sensor_count: int
     raw_channel_count: int
-    effective_rank: int
+    noise_effective_rank: int
     participation_ratio: float
     rank_rtol: float
     sensors: tuple[SensorManifest, ...]
@@ -410,7 +420,7 @@ class ArrayManifest:
             "raw_sensor_count": self.raw_sensor_count,
             "active_sensor_count": self.active_sensor_count,
             "raw_channel_count": self.raw_channel_count,
-            "effective_rank": self.effective_rank,
+            "noise_effective_rank": self.noise_effective_rank,
             "participation_ratio": self.participation_ratio,
             "rank_rtol": self.rank_rtol,
             "sensors": [sensor.to_dict() for sensor in self.sensors],
@@ -606,7 +616,7 @@ class WitnessArray:
             raw_sensor_count=self.raw_sensor_count,
             active_sensor_count=len(self.active_sensors),
             raw_channel_count=len(self.active_sensors),
-            effective_rank=effective_rank(noise, rtol=rank_rtol),
+            noise_effective_rank=effective_rank(noise, rtol=rank_rtol),
             participation_ratio=participation_ratio(noise),
             rank_rtol=rank_rtol,
             sensors=records,

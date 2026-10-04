@@ -571,7 +571,20 @@ class TestExplicitNoiseIntegration:
         )
         manifest = array.manifest(reference_frequency=2.0)
         assert manifest.raw_sensor_count == 4
-        assert manifest.effective_rank == 1
+        assert manifest.noise_effective_rank == 1
+
+    def test_noiseless_array_noise_rank_differs_from_covariance_rank(self) -> None:
+        """A noiseless array has noise rank zero but full field-plus-noise rank.
+
+        The manifest ranks the noise matrix alone; the covariance ranks the
+        field plus noise. On the same noiseless four-sensor array at 2 Hz the
+        two must stay distinct, so neither can be read as the other.
+        """
+        array = _array(4, self_noise_psd=None)
+        covariance = witness_covariance(np.array([2.0]), _field(), array, manifest_frequency=2.0)
+        assert covariance.array_manifest.noise_effective_rank == 0
+        assert covariance.effective_rank().tolist() == [4]
+        assert not hasattr(covariance.array_manifest, "effective_rank")
 
     def test_explicit_noise_follows_permutation_and_missing_in_the_joint_covariance(self) -> None:
         """The witness noise block permutes and masks like the array channels."""

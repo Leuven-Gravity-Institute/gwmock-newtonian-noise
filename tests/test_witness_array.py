@@ -571,8 +571,8 @@ class TestArrayManifest:
         correlated = self._array(noise=CorrelatedNoise(correlation_length=1.0e9)).manifest(reference_frequency=2.0)
         independent = self._array().manifest(reference_frequency=2.0)
         assert correlated.raw_sensor_count == 4
-        assert correlated.effective_rank == 1
-        assert independent.effective_rank == 4
+        assert correlated.noise_effective_rank == 1
+        assert independent.noise_effective_rank == 4
         assert correlated.participation_ratio == pytest.approx(1.0, rel=1e-6)
         assert independent.participation_ratio == pytest.approx(4.0)
 
@@ -581,7 +581,7 @@ class TestArrayManifest:
         manifest = self._array().with_missing(("W3",)).manifest(reference_frequency=2.0)
         assert manifest.active_sensor_count == 3
         assert manifest.raw_channel_count == 3
-        assert manifest.effective_rank == 3
+        assert manifest.noise_effective_rank == 3
         assert [record.present for record in manifest.sensors] == [True, True, True, False]
 
 

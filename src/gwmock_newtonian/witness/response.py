@@ -209,7 +209,16 @@ class WitnessCovariance:
     array_manifest: ArrayManifest
 
     def effective_rank(self, rtol: float = 1e-9) -> NDArray[np.int64]:
-        """Return the effective rank per frequency, shape ``(n_freq,)``."""
+        """Return the effective rank of the field-plus-noise covariance per frequency.
+
+        This ranks :attr:`matrix`, which includes the seismic field, so a
+        noiseless array still has a nonzero rank here. It is not the manifest's
+        :attr:`~gwmock_newtonian.witness.array.ArrayManifest.noise_effective_rank`,
+        which ranks the noise matrix alone.
+
+        Returns:
+            Integer ranks, shape ``(n_freq,)``.
+        """
         return np.array([_effective_rank(slice_matrix, rtol=rtol) for slice_matrix in self.matrix], dtype=np.int64)
 
     def participation_ratio(self) -> NDArray[np.float64]:
