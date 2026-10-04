@@ -169,6 +169,9 @@ pytest_add_cli_args = [
 [tool.ruff]
 line-length = 120 # Matches Black's default
 target-version = "py312" # Align with CI (3.12–3.14) and requires-python (>=3.12)
+# A verbatim copy of an upstream gwmock-noise module (see tests/test_joint_conformance.py). It is
+# kept byte-identical to its source, so this repository's import-sorting rules must not rewrite it.
+extend-exclude = ["tests/_upstream_joint_conformance.py"]
 lint.extend-select = [
   "E",
   "F",
