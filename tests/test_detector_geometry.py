@@ -372,9 +372,9 @@ class TestTestMassLayout:
     def test_rejects_a_longitudinal_offset_beyond_the_arm_tolerance(self) -> None:
         """A 50 m positive-end offset moves ET1's end ~25 m off its declared arm.
 
-        The 50 m displacement is at 60 degrees to ET1's positive arm, so ET1 gives
-        length 9975.09 m and projection 9975 m against the 10000 m arm -- ~25 m off,
-        past the 0.5 m cap -- and the layout is rejected.
+        The 50 m displacement is at 120 degrees (``cos = -1/2``) to ET1's positive
+        arm, so ET1 gives length 9975.09 m and projection 9975 m against the 10000 m
+        arm -- ~25 m off, past the 0.5 m cap -- and the layout is rejected.
         """
         geometry = _geometry()
         with pytest.raises(ValueError, match="arm length"):
