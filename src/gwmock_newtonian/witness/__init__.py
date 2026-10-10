@@ -4,10 +4,10 @@ Public subpackage implementing the witness physics: sensors with an
 explicit measured quantity, position, orientation, complex frequency-dependent
 response, calibration, self-noise, timing offset and array-level correlated
 noise; missing channels; nested benchmark arrays in a named fixed-aperture or
-growing-span mode, with manifests that report raw count and effective rank
-separately and the realized radius next to the aperture ceiling; and the joint
-strain--witness covariance and realization built by reusing the detector
-response operator.
+growing-span mode, with manifests that report raw count and noise effective
+rank separately and the realized radius next to the aperture ceiling; and the
+joint strain--witness covariance and realization built by reusing the
+detector response operator.
 """
 
 from __future__ import annotations

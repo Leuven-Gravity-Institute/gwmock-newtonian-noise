@@ -564,7 +564,7 @@ class TestExplicitNoiseIntegration:
     """
 
     def test_explicit_rank_deficient_noise_is_reported(self) -> None:
-        """A rank-one explicit noise gives effective rank one while the raw count is four."""
+        """A rank-one explicit noise gives noise effective rank one while the raw count is four."""
         matrix = np.ones((4, 4), dtype=complex)
 
         def covariance(frequency: float) -> np.ndarray:

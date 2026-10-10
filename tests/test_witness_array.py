@@ -5,8 +5,8 @@ and against exact algebra (quantity transfers, timing phases, correlated-noise
 ranks), and they pin the nested-array invariants the design requires: the
 aperture ceiling and every per-sensor property are fixed across ``N``; in
 fixed-aperture mode the realized radius and span are fixed across ``N`` too; and
-the manifest reports the raw sensor count and the effective rank separately, and
-the realized radius next to the aperture ceiling.
+the manifest reports the raw sensor count and the noise effective rank
+separately, and the realized radius next to the aperture ceiling.
 
 All numeric fixtures are UNANCHORED illustrative values chosen only to exercise
 the code, not a representative ET sensor deployment.
@@ -567,7 +567,7 @@ class TestArrayManifest:
         assert payload["sensors"][0]["calibration"] == [1.5, -0.25]
 
     def test_raw_count_and_effective_rank_are_reported_separately(self) -> None:
-        """A strongly correlated noise model has raw count N but effective rank one."""
+        """A strongly correlated noise model has raw count N but noise effective rank one."""
         correlated = self._array(noise=CorrelatedNoise(correlation_length=1.0e9)).manifest(reference_frequency=2.0)
         independent = self._array().manifest(reference_frequency=2.0)
         assert correlated.raw_sensor_count == 4

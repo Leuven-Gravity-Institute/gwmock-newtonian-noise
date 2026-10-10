@@ -46,15 +46,15 @@ records the mode and the *realized* horizontal radius and span next to the
 ``aperture`` ceiling, so a change of span with ``N`` is never hidden behind a
 constant ceiling.
 
-Effective rank versus raw count
--------------------------------
+Noise effective rank versus raw count
+-------------------------------------
 
 :func:`effective_rank` and :func:`participation_ratio` are computed from the
 array's ``N x N`` one-sided noise covariance. A diagonal (independent) noise
 model gives rank ``N``; a noise model whose channels are strongly correlated at
 a length scale much larger than the array aperture is numerically rank one
-despite ``N`` raw channels. The manifest reports the raw count and the effective
-rank *separately* so the two are never conflated.
+despite ``N`` raw channels. The manifest reports the raw count and the noise
+effective rank *separately* so the two are never conflated.
 
 The manifest's rank is ``noise_effective_rank``: the rank of the noise matrix
 alone, which is ``0`` for a noiseless array. It is not the rank of the
