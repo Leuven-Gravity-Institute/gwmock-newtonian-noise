@@ -67,7 +67,7 @@ class TestQuantityTransfer:
             -((2.0 * np.pi * frequency) ** 2)
         )
 
-    def test_velocity_over_displacement_is_i_omega(self) -> None:
+    def test_velocity_over_displacement_is_minus_i_omega(self) -> None:
         """The ratio between the velocity and displacement transfers is the derivative factor."""
         frequency = 2.5
         ratio = quantity_transfer(SensorQuantity.VELOCITY, frequency) / quantity_transfer(
