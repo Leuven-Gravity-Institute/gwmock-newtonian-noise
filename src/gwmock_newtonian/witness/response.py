@@ -222,7 +222,17 @@ class WitnessCovariance:
         return np.array([_effective_rank(slice_matrix, rtol=rtol) for slice_matrix in self.matrix], dtype=np.int64)
 
     def participation_ratio(self) -> NDArray[np.float64]:
-        """Return the participation ratio per frequency, shape ``(n_freq,)``."""
+        """Return the participation ratio of the field-plus-noise covariance per frequency.
+
+        This is computed over :attr:`matrix`, which includes the seismic field,
+        so a noiseless array still has a nonzero ratio here. It is not the
+        manifest's
+        :attr:`~gwmock_newtonian.witness.array.ArrayManifest.noise_participation_ratio`,
+        which is computed over the noise matrix alone.
+
+        Returns:
+            Participation ratios, shape ``(n_freq,)``.
+        """
         return np.array([_participation_ratio(slice_matrix) for slice_matrix in self.matrix], dtype=float)
 
 

@@ -593,6 +593,20 @@ class TestExplicitNoiseIntegration:
         assert covariance.effective_rank().tolist() == [4]
         assert not hasattr(covariance.array_manifest, "effective_rank")
 
+    def test_noiseless_array_noise_participation_ratio_differs_from_covariance_ratio(self) -> None:
+        """A noiseless array has noise participation ratio zero but a field-plus-noise ratio above one.
+
+        The manifest's ratio covers the noise matrix alone; the covariance's
+        covers the field plus noise. On the same noiseless four-sensor array at
+        2 Hz the two must stay distinct, so neither can be read as the other.
+        """
+        array = _array(4, self_noise_psd=None)
+        covariance = witness_covariance(np.array([2.0]), _field(), array, manifest_frequency=2.0)
+        assert covariance.array_manifest.noise_participation_ratio == 0.0
+        (field_ratio,) = covariance.participation_ratio().tolist()
+        assert 1.0 < field_ratio <= 4.0
+        assert not hasattr(covariance.array_manifest, "participation_ratio")
+
     def test_explicit_noise_follows_permutation_and_missing_in_the_joint_covariance(self) -> None:
         """The witness noise block permutes and masks like the array channels."""
         matrix = np.array([[2.0, 0.5], [0.5, 3.0]], dtype=complex)

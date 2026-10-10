@@ -573,8 +573,8 @@ class TestArrayManifest:
         assert correlated.raw_sensor_count == 4
         assert correlated.noise_effective_rank == 1
         assert independent.noise_effective_rank == 4
-        assert correlated.participation_ratio == pytest.approx(1.0, rel=1e-6)
-        assert independent.participation_ratio == pytest.approx(4.0)
+        assert correlated.noise_participation_ratio == pytest.approx(1.0, rel=1e-6)
+        assert independent.noise_participation_ratio == pytest.approx(4.0)
 
     def test_manifest_effective_rank_shrinks_with_the_mask(self) -> None:
         """Missing channels reduce the active channel count and the rank evaluated on them."""
