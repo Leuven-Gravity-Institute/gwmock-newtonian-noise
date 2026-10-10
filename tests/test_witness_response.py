@@ -451,13 +451,20 @@ class TestLimits:
         """As self-noise diverges, the normalized strain--witness coherence vanishes."""
         config = _detector_config()
         frequency = np.array([2.0])
-        noiseless = joint_covariance(frequency, config, _array(1, self_noise_psd=None))
-        noisy = joint_covariance(frequency, config, _array(1, self_noise_psd=lambda f: 1.0e24))
-        strain_psd = float(noiseless.strain_block()[0, 0, 0].real)
-        cross = complex(noiseless.cross_block()[0, 0, 0])
-        coherence = abs(cross) / np.sqrt(strain_psd * 1.0e24)
-        assert coherence < 1e-10
-        assert noisy.witness_block()[0, 0, 0].real == pytest.approx(1.0e24, rel=1e-6)
+
+        def coherence(self_noise_psd: float | None) -> float:
+            noise = None if self_noise_psd is None else (lambda f: self_noise_psd)
+            covariance = joint_covariance(frequency, config, _array(1, self_noise_psd=noise))
+            strain_psd = float(covariance.strain_block()[0, 0, 0].real)
+            witness_psd = float(covariance.witness_block()[0, 0, 0].real)
+            cross = complex(covariance.cross_block()[0, 0, 0])
+            return abs(cross) / np.sqrt(strain_psd * witness_psd)
+
+        # The limit is only meaningful if the noiseless witness is coherent with the strain.
+        assert coherence(None) > 1e-2
+        ladder = [coherence(level) for level in (1.0, 1.0e6, 1.0e24)]
+        assert coherence(None) > ladder[0] > ladder[1] > ladder[2]
+        assert ladder[2] < 1e-10
 
     def test_missing_channels_select_a_submatrix(self) -> None:
         """Dropping sensors takes the corresponding rows and columns of the full covariance."""
