@@ -565,6 +565,8 @@ class TestArrayManifest:
         text = json.dumps(payload)
         assert json.loads(text)["raw_sensor_count"] == 4
         assert payload["sensors"][0]["calibration"] == [1.5, -0.25]
+        assert "noise_participation_ratio" in payload
+        assert "participation_ratio" not in payload
 
     def test_raw_count_and_effective_rank_are_reported_separately(self) -> None:
         """A strongly correlated noise model has raw count N but noise effective rank one."""
