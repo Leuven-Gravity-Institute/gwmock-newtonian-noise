@@ -31,6 +31,34 @@ directly:
 A compatibility adapter (`StrainOnlyAdapter`) lets existing `gwmock-noise`
 consumers receive strain-only output from either backend.
 
+## Broader Newtonian-noise families
+
+`gwmock_newtonian.families` extends the physics beyond the minimal Rayleigh
+field, for out-of-family tests. Every family is a set of independent latent
+modes with a displacement and a Newtonian-acceleration response, so one generic
+consumer builds the strain, witness and joint covariances and realizations for
+all of them, and independent families combine by mixing:
+
+- `RayleighFamily` — the existing Rayleigh field through the family contract (it
+  reproduces the existing joint covariance), plus `phase_velocity_spread`, a
+  lateral-inhomogeneity proxy;
+- `BodyWaveFamily` — P, SV and SH plane body waves with separate, required PSDs
+  and a three-dimensional directional density, either in the infinite-medium
+  limit or in a half-space with free-surface reflections;
+  `equipartitioned_body_waves` is the diffuse (scattering-limit) field;
+- `LoveWaveFamily` — fundamental Love waves of a layer over a half-space; they
+  source no field-intrinsic gravity in this geometry but are seen by horizontal
+  witnesses and reach the strain through the cavity term;
+- `PointSourceFamily` — localized isotropic P-wave sources with their near
+  field;
+- `CavityModel` — the cavity-wall term of a test mass in an underground hall.
+
+Sensors and test masses are placed in three dimensions (`z` is depth). No family
+fixes a site: each lists its site parameters in `UNANCHORED_PARAMETERS`, none of
+which has a default, and every value used in the tests is illustrative. Layered
+Rayleigh modes, topography, attenuation, cavity scattering and free-surface
+effects on point sources are not modelled.
+
 ## Development
 
 ```bash
