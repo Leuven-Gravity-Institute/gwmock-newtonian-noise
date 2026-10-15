@@ -103,6 +103,12 @@ class TestFullSpace:
         expected = full_space_acceleration([component], centre[None, :], RHO)[0]
         quadrature = _real_space_acceleration(component, centre, 0.0, 8.0 * np.pi / wavenumber)
         np.testing.assert_allclose(quadrature, expected, rtol=1e-9, atol=0.0)
+        # Maintained anchor: the vector relative error is at the round-off floor of the
+        # sum, measured 3.3e-14 and 3.5e-14 for the two directions. The bound keeps the
+        # quoted "3e-14" order of magnitude true; a per-component check would be looser,
+        # because a small component carries a larger relative error (up to 1.1e-13).
+        relative_error = np.linalg.norm(quadrature - expected) / np.linalg.norm(expected)
+        assert relative_error < 1e-13, relative_error
         displacement = component.amplitude * component.polarization * np.exp(1j * centre @ component.wavevector)
         np.testing.assert_allclose(expected, 4.0 * np.pi * G * RHO * displacement, rtol=1e-12, atol=0.0)
 
