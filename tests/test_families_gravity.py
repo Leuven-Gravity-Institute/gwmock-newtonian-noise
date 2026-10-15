@@ -179,16 +179,18 @@ class TestCavity:
     """The leading-order cavity-wall term against an exact real-space evaluation."""
 
     @pytest.mark.parametrize("kind", ["P", "S"])
-    def test_cavity_total_matches_a_real_space_shell_plus_wall_sum(self, kind: str) -> None:
+    @pytest.mark.parametrize("ka", [0.02, 0.2])
+    def test_cavity_total_matches_a_real_space_shell_plus_wall_sum(self, kind: str, ka: float) -> None:
         """Bulk outside the cavity plus the wall layer, summed directly, approaches the model as ``K a -> 0``.
 
         The model is the full-space relation plus ``-(4 pi/3) G rho0 u``; the
         neglected bulk inside the cavity is ``O((K a)^2)``. The real-space sum
         excludes the ball and adds the wall density ``-rho0 u . r_hat`` exactly.
-        This anchors the ``(8 pi/3, -4 pi/3)`` P/S pair, including its sign.
+        This anchors the ``(8 pi/3, -4 pi/3)`` P/S pair, including its sign,
+        and the ``(K a)^2 / 10`` scaling of the error at two radii.
         """
         wavenumber = 2.0 * np.pi / 500.0
-        radius = 0.02 / wavenumber
+        radius = ka / wavenumber
         component = _plane_component(kind, wavenumber, np.array([0.4, 0.3, -0.85]))
         centre = np.array([0.0, 50.0, 300.0])
         displacement = component_displacement_at(component, centre)
@@ -199,8 +201,11 @@ class TestCavity:
         exact = _real_space_acceleration(component, centre, radius, 8.0 * np.pi / wavenumber) + _wall_acceleration(
             component, centre, radius
         )
-        # The neglected in-cavity bulk is (K a)^2 / 10 relative: 4e-5 here, measured.
-        np.testing.assert_allclose(exact, model, rtol=0.0, atol=1e-4 * np.linalg.norm(model))
+        # The relative error is (K a)^2 / 10 at leading order: measured 3.99994e-5 at
+        # K a = 0.02 and 3.99429e-3 at K a = 0.2, for both P and S. The 1e-2 tolerance
+        # holds the next-order (K a)^4 term (1.4e-3 relative at K a = 0.2).
+        error = np.linalg.norm(exact - model) / np.linalg.norm(model)
+        assert error == pytest.approx(ka**2 / 10.0, rel=1e-2)
         coefficient = 8.0 * np.pi / 3.0 if kind == "P" else -4.0 * np.pi / 3.0
         np.testing.assert_allclose(model, coefficient * G * RHO * displacement, rtol=1e-12, atol=0.0)
 
