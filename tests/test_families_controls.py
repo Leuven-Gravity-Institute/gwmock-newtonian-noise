@@ -22,8 +22,8 @@ from _family_fixtures import (
     realization_grid,
 )
 
-from gwmock_newtonian.detector.newtonian import GRAVITATIONAL_CONSTANT
-from gwmock_newtonian.families import (
+from gwmock_newtonian_noise.detector.newtonian import GRAVITATIONAL_CONSTANT
+from gwmock_newtonian_noise.families import (
     BodyWaveFamily,
     FamilyMixture,
     FieldFamily,
@@ -37,10 +37,10 @@ from gwmock_newtonian.families import (
     synthesize_family_joint,
     uniform_sphere_density,
 )
-from gwmock_newtonian.families.love import LayerOverHalfSpace
-from gwmock_newtonian.seismic.field import RayleighWaveFieldConfig
-from gwmock_newtonian.seismic.medium import ElasticHalfSpace
-from gwmock_newtonian.seismic.spectrum import uniform_directional_density
+from gwmock_newtonian_noise.families.love import LayerOverHalfSpace
+from gwmock_newtonian_noise.seismic.field import RayleighWaveFieldConfig
+from gwmock_newtonian_noise.seismic.medium import ElasticHalfSpace
+from gwmock_newtonian_noise.seismic.spectrum import uniform_directional_density
 
 KINDS = ("rayleigh", "body_full", "body_half", "diffuse", "love", "point", "mixture")
 

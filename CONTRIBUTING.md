@@ -1,6 +1,6 @@
-# Contributing to gwmock-newtonian
+# Contributing to gwmock-newtonian-noise
 
-🎉 Thank you for your interest in contributing to `gwmock-newtonian`! Your
+🎉 Thank you for your interest in contributing to `gwmock-newtonian-noise`! Your
 ideas, fixes, and improvements are welcome and appreciated.
 
 Whether you’re fixing a typo, reporting a bug, suggesting a feature, or
@@ -13,20 +13,20 @@ submitting a pull request—this guide will help you get started.
 1. Open an Issue
 
     - Have a question, bug report, or feature suggestion?
-    [Open an issue](https://github.com/isaac-cf-wong/gwmock-newtonian/issues/new/choose)
+    [Open an issue](https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/issues/new/choose)
     and describe your idea clearly.
     - Check for existing issues before opening a new one.
 
 2. Fork and Clone the Repository
 
     ```shell
-    git clone git@github.com:<username>/gwmock-newtonian.git
-    cd gwmock-newtonian
+    git clone git@github.com:<username>/gwmock-newtonian-noise.git
+    cd gwmock-newtonian-noise
     ```
 
 3. Set Up Your Environment
 
-    We recommend using uv to manage virtual environments for installing `gwmock-newtonian`.
+    We recommend using uv to manage virtual environments for installing `gwmock-newtonian-noise`.
     If you don't have uv installed, you can install it with pip. See the project pages for more details:
 
     - Install via pip: `pip install --upgrade pip && pip install uv`
@@ -90,7 +90,7 @@ submitting a pull request—this guide will help you get started.
 
     # `run` also takes mutant-name globs, so a single module can be targeted; names are the
     # dotted module path plus the mutated function, as printed by `mutmut results`.
-    uv run mutmut run 'gwmock_newtonian.cli.main.*'
+    uv run mutmut run 'gwmock_newtonian_noise.cli.main.*'
     ```
 
     A surviving mutant is a change to the source that no test noticed. Either add the test that
@@ -185,6 +185,6 @@ project’s 3-Clause BSD License.
 
 ---
 
-Thanks again for being part of the `gwmock-newtonian` community!
+Thanks again for being part of the `gwmock-newtonian-noise` community!
 
 ---

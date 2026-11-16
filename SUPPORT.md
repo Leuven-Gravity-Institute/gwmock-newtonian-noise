@@ -1,6 +1,6 @@
 # Support
 
-Thank you for your interest in **gwmock-newtonian**!
+Thank you for your interest in **gwmock-newtonian-noise**!
 
 If you have questions, suggestions, or need help using the project, here are
 some ways to get support:
@@ -8,10 +8,11 @@ some ways to get support:
 ## 💬 Ask a Question
 
 If you're experiencing a problem or have a question about how to use
-`gwmock-newtonian`, please open a
-[GitHub Discussion](https://github.com/isaac-cf-wong/gwmock-newtonian/discussions)
-or [Issue](https://github.com/isaac-cf-wong/gwmock-newtonian/issues), depending
-on the nature of your question.
+`gwmock-newtonian-noise`, please open a
+[GitHub Discussion](https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/discussions)
+or
+[Issue](https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/issues),
+depending on the nature of your question.
 
 - Use **Discussions** for general questions, ideas, or usage help.
 - Use **Issues** for reporting bugs or requesting new features.
@@ -19,13 +20,13 @@ on the nature of your question.
 ## 🐛 Found a Bug
 
 Please check if your issue has already been reported. If not, create a
-[new issue](https://github.com/isaac-cf-wong/gwmock-newtonian/issues/new/choose)
+[new issue](https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/issues/new/choose)
 with:
 
 - A clear and descriptive title.
 - Steps to reproduce the problem.
 - Relevant logs or error messages.
-- The version of Python and `gwmock-newtonian` you're using.
+- The version of Python and `gwmock-newtonian-noise` you're using.
 
 ## 🙋 Want to Contribute
 

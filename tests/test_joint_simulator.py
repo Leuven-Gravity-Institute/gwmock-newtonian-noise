@@ -23,12 +23,12 @@ import scipy.signal
 from gwmock_noise import available_joint_backend_names, load_joint_backend
 from gwmock_noise.simulators.protocol import NoiseSimulator
 
-import gwmock_newtonian
-from gwmock_newtonian.adapter import StrainOnlyAdapter
-from gwmock_newtonian.joint import BACKEND_NAME, STRAIN_UNIT, NewtonianJointSimulator
-from gwmock_newtonian.provenance import SourceState, source_state
-from gwmock_newtonian.rng import segment_seed_sequence
-from gwmock_newtonian.witness.response import joint_covariance, joint_mode_responses, synthesize_joint
+import gwmock_newtonian_noise
+from gwmock_newtonian_noise.adapter import StrainOnlyAdapter
+from gwmock_newtonian_noise.joint import BACKEND_NAME, STRAIN_UNIT, NewtonianJointSimulator
+from gwmock_newtonian_noise.provenance import SourceState, source_state
+from gwmock_newtonian_noise.rng import segment_seed_sequence
+from gwmock_newtonian_noise.witness.response import joint_covariance, joint_mode_responses, synthesize_joint
 
 pytestmark = pytest.mark.unit
 
@@ -426,7 +426,7 @@ class TestProvenanceState:
 
     def _repository(self, root: Path) -> Path:
         """Create a committed git repository with this package's ``src`` layout; return the package dir."""
-        package = root / "src" / "gwmock_newtonian"
+        package = root / "src" / "gwmock_newtonian_noise"
         package.mkdir(parents=True)
         (package / "__init__.py").write_text("")
         self._git(root, "init", "-q")
@@ -452,9 +452,9 @@ class TestProvenanceState:
         restored = json.loads(json.dumps(provenance))
         assert restored == provenance
         assert provenance["backend"] == BACKEND_NAME
-        assert provenance["package_version"] == gwmock_newtonian.__version__
+        assert provenance["package_version"] == gwmock_newtonian_noise.__version__
         assert provenance["gwmock_noise_version"]
-        package_dir = Path(gwmock_newtonian.__file__).resolve().parent
+        package_dir = Path(gwmock_newtonian_noise.__file__).resolve().parent
         top_level = Path(self._git(package_dir, "rev-parse", "--show-toplevel"))
         assert provenance["source_commit"] == self._git(top_level, "rev-parse", "HEAD")
         assert provenance["source_dirty"] is bool(self._git(top_level, "status", "--porcelain"))
@@ -473,11 +473,11 @@ class TestProvenanceState:
 
     def test_source_state_ignores_trees_that_are_not_this_package(self, tmp_path: Path) -> None:
         """No git tree, or an unrelated repository containing an installed copy, reports unknown."""
-        plain = tmp_path / "plain" / "gwmock_newtonian"
+        plain = tmp_path / "plain" / "gwmock_newtonian_noise"
         plain.mkdir(parents=True)
         assert source_state(plain) == SourceState(commit=None, dirty=None)
         self._repository(tmp_path / "other")
-        installed = tmp_path / "other" / "site-packages" / "gwmock_newtonian"
+        installed = tmp_path / "other" / "site-packages" / "gwmock_newtonian_noise"
         installed.mkdir(parents=True)
         assert source_state(installed) == SourceState(commit=None, dirty=None)
 

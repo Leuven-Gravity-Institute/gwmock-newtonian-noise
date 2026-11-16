@@ -5,7 +5,7 @@ description: Physical joint strain+witness backend.
 
 <!-- prettier-ignore-start -->
 
-::: gwmock_newtonian.joint
+::: gwmock_newtonian_noise.joint
     options:
         show_root_heading: false
         heading_level: 2

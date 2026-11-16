@@ -1,13 +1,13 @@
 """Tests for the orchestrating detector-response, covariance and null construction.
 
-The production :func:`~gwmock_newtonian.detector.response.strain_covariance`
+The production :func:`~gwmock_newtonian_noise.detector.response.strain_covariance`
 assembles the one-sided three-channel strain cross-spectral density from the
 closed-form Newtonian acceleration kernel. These tests control it with
 independent routes and analytic identities that do not re-run the production
 assembly:
 
 - the direct real-space acceleration integration
-  (:func:`~gwmock_newtonian.detector.response.strain_covariance_direct`) must
+  (:func:`~gwmock_newtonian_noise.detector.response.strain_covariance_direct`) must
   reproduce the closed-form covariance -- the "direct test-mass
   acceleration integration agrees with the covariance operator" control;
 - the closed shared-vertex triangle telescopes exactly, so ``u^T s = 0`` for
@@ -28,16 +28,16 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from gwmock_newtonian.detector.geometry import TriangleGeometry, equilateral_triangle
-from gwmock_newtonian.detector.masses import (
+from gwmock_newtonian_noise.detector.geometry import TriangleGeometry, equilateral_triangle
+from gwmock_newtonian_noise.detector.masses import (
     Suspension,
     TestMassLayout,
     free_mass_response,
     independent_mass_layout,
     shared_vertex_layout,
 )
-from gwmock_newtonian.detector.newtonian import GRAVITATIONAL_CONSTANT
-from gwmock_newtonian.detector.response import (
+from gwmock_newtonian_noise.detector.newtonian import GRAVITATIONAL_CONSTANT
+from gwmock_newtonian_noise.detector.response import (
     DetectorResponseConfig,
     DetectorStrainCovariance,
     _plane_wave_kernel,
@@ -47,9 +47,9 @@ from gwmock_newtonian.detector.response import (
     strain_covariance,
     strain_covariance_direct,
 )
-from gwmock_newtonian.seismic.field import RayleighWaveFieldConfig, steering_vectors
-from gwmock_newtonian.seismic.medium import ElasticHalfSpace
-from gwmock_newtonian.seismic.spectrum import power_law_psd, uniform_directional_density
+from gwmock_newtonian_noise.seismic.field import RayleighWaveFieldConfig, steering_vectors
+from gwmock_newtonian_noise.seismic.medium import ElasticHalfSpace
+from gwmock_newtonian_noise.seismic.spectrum import power_law_psd, uniform_directional_density
 
 pytestmark = pytest.mark.unit
 
@@ -145,7 +145,7 @@ class TestResponseConfig:
         """``density_profile`` reproduces the field's bulk density steering at the origin.
 
         The expected profile is recomputed from the field's own primitive
-        :func:`~gwmock_newtonian.seismic.field.steering_vectors` at ``(0, 0, z)``
+        :func:`~gwmock_newtonian_noise.seismic.field.steering_vectors` at ``(0, 0, z)``
         (where the plane-wave envelope is unity), not by calling the production
         detector helper a second time, so a sign, scale or offset change in that
         helper can fail this test.
@@ -540,7 +540,7 @@ class TestSurfaceAmplitudeReadback:
         baseline_direct = strain_covariance_direct(frequencies, config, **direct_kwargs)
 
         monkeypatch.setattr(
-            "gwmock_newtonian.detector.response.surface_vertical_amplitude",
+            "gwmock_newtonian_noise.detector.response.surface_vertical_amplitude",
             lambda frequency, field: 2.0,
         )
         doubled_closed = strain_covariance(frequencies, config)

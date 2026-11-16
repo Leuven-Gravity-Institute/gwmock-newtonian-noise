@@ -7,7 +7,7 @@ The plane-wave (production) kernel is checked against:
 - the classic uniform-sheet limit ``a_z = 2 pi G rho0`` (an analytic external
   reference);
 - the direct real-space Green's-function quadrature in
-  :func:`~gwmock_newtonian.detector.newtonian.acceleration_quadrature`, which is
+  :func:`~gwmock_newtonian_noise.detector.newtonian.acceleration_quadrature`, which is
   the required "direct test-mass acceleration integration" control.
 
 All numeric values here are UNANCHORED illustrative fixtures -- no representative
@@ -19,7 +19,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from gwmock_newtonian.detector.newtonian import (
+from gwmock_newtonian_noise.detector.newtonian import (
     GRAVITATIONAL_CONSTANT,
     SURFACE_AMPLITUDE_REFERENCE_METRES,
     RayleighMode,
@@ -28,9 +28,9 @@ from gwmock_newtonian.detector.newtonian import (
     plane_wave_acceleration,
     surface_vertical_amplitude,
 )
-from gwmock_newtonian.seismic.field import RayleighWaveFieldConfig
-from gwmock_newtonian.seismic.medium import ElasticHalfSpace
-from gwmock_newtonian.seismic.spectrum import power_law_psd, uniform_directional_density
+from gwmock_newtonian_noise.seismic.field import RayleighWaveFieldConfig
+from gwmock_newtonian_noise.seismic.medium import ElasticHalfSpace
+from gwmock_newtonian_noise.seismic.spectrum import power_law_psd, uniform_directional_density
 
 pytestmark = pytest.mark.unit
 
@@ -91,7 +91,7 @@ class TestDepthIntegrals:
         mode = _synthetic_mode(k)
         profile = _exponential_profile(amplitude, decay)
         smooth, signed = __import__(
-            "gwmock_newtonian.detector.newtonian", fromlist=["_depth_integrals"]
+            "gwmock_newtonian_noise.detector.newtonian", fromlist=["_depth_integrals"]
         )._depth_integrals(profile, mode, mass_depth, mass_depth + 120.0, 400)
         # Analytic integrals of A0 exp(-decay z) exp(-k |z - z0|) / sign(z - z0).
         common = amplitude * (np.exp(-k * mass_depth) - np.exp(-decay * mass_depth)) / (decay - k)

@@ -5,7 +5,7 @@ description: Validated configuration schema.
 
 <!-- prettier-ignore-start -->
 
-::: gwmock_newtonian.config
+::: gwmock_newtonian_noise.config
     options:
         show_root_heading: false
         heading_level: 2

@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from gwmock_newtonian.rng import RNG_BIT_GENERATOR, create_generator, segment_seed_sequence
+from gwmock_newtonian_noise.rng import RNG_BIT_GENERATOR, create_generator, segment_seed_sequence
 
 pytestmark = pytest.mark.unit
 
@@ -42,7 +42,7 @@ def test_continuation_matches_one_shot_draw() -> None:
     """Two sequential draws from one generator equal one draw of the combined size.
 
     This is the property the streaming continuation contract in
-    :mod:`gwmock_newtonian.simulator` relies on.
+    :mod:`gwmock_newtonian_noise.simulator` relies on.
     """
     continued = create_generator(seed=7)
     first_chunk = continued.standard_normal(5)

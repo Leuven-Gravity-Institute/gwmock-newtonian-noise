@@ -1,10 +1,10 @@
 ---
 title: API Reference
-description: Public API of gwmock-newtonian.
+description: Public API of gwmock-newtonian-noise.
 icon: material/api
 ---
 
-`gwmock-newtonian` implements the optional
+`gwmock-newtonian-noise` implements the optional
 [`JointStrainWitnessSimulator`](https://github.com/Leuven-Gravity-Institute/gwmock-noise/blob/main/src/gwmock_noise/simulators/joint_protocol.py)
 protocol from the public `gwmock-noise` package.
 

@@ -19,7 +19,7 @@ import json
 import numpy as np
 import pytest
 
-from gwmock_newtonian.witness.array import (
+from gwmock_newtonian_noise.witness.array import (
     CorrelatedNoise,
     DiagonalNoise,
     ExplicitNoise,
@@ -31,7 +31,7 @@ from gwmock_newtonian.witness.array import (
     participation_ratio,
     sunflower_positions,
 )
-from gwmock_newtonian.witness.sensor import (
+from gwmock_newtonian_noise.witness.sensor import (
     SensorQuantity,
     WitnessSensor,
     constant_response,

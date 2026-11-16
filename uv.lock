@@ -379,7 +379,7 @@ wheels = [
 ]
 
 [[package]]
-name = "gwmock-newtonian"
+name = "gwmock-newtonian-noise"
 source = { editable = "." }
 dependencies = [
     { name = "gwmock-noise" },

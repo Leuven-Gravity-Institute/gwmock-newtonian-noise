@@ -1,7 +1,7 @@
 """Tests for the entry-point plugin registration under gwmock_noise.joint_backends.
 
 Also demonstrates the "missing provider fails clearly" acceptance criterion:
-this package's own test suite necessarily has gwmock-newtonian installed (it
+this package's own test suite necessarily has gwmock-newtonian-noise installed (it
 tests itself), so a literal uninstalled-provider environment is not
 reproducible as a permanent, fast unit test here -- it would need a network
 install into a throwaway venv on every run. What is verified below instead:
@@ -13,7 +13,7 @@ package sees when it asks for "newtonian_scaffold" by name.
 
 This was additionally checked, once, by hand in a genuinely provider-absent
 environment (a fresh venv with only gwmock-noise installed, pinned to the
-same commit, and gwmock-newtonian never installed into it):
+same commit, and gwmock-newtonian-noise never installed into it):
 
     available backends: ('dummy_correlated',)
     KeyError raised as expected: "Unknown joint backend 'newtonian_scaffold'.
@@ -29,7 +29,7 @@ from __future__ import annotations
 import pytest
 from gwmock_noise import available_joint_backend_names, load_joint_backend
 
-from gwmock_newtonian.simulator import BACKEND_NAME, NewtonianScaffoldSimulator
+from gwmock_newtonian_noise.simulator import BACKEND_NAME, NewtonianScaffoldSimulator
 
 pytestmark = pytest.mark.unit
 
@@ -48,7 +48,7 @@ def test_backend_loads_to_the_expected_class() -> None:
 def test_missing_provider_fails_clearly() -> None:
     """Requesting an unregistered backend name raises a clear, listing KeyError.
 
-    This is the failure mode a public environment without gwmock-newtonian
+    This is the failure mode a public environment without gwmock-newtonian-noise
     installed sees: the entry point is simply absent from discovery, and
     load_joint_backend raises this same KeyError shape.
     """

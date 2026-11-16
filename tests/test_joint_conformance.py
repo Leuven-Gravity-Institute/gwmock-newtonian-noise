@@ -21,8 +21,8 @@ from _upstream_joint_conformance import JointBackendCase, JointBackendConformanc
 from gwmock_noise import load_joint_backend
 from gwmock_noise.simulators.joint_protocol import JointStrainWitnessSimulator
 
-from gwmock_newtonian.config import NewtonianScaffoldConfig
-from gwmock_newtonian.rng import RNG_BIT_GENERATOR
+from gwmock_newtonian_noise.config import NewtonianScaffoldConfig
+from gwmock_newtonian_noise.rng import RNG_BIT_GENERATOR
 
 pytestmark = pytest.mark.unit
 
@@ -87,7 +87,7 @@ class TestPhysicalBackendNaming:
         """A sensor carrying a detector name cannot be constructed into the joint backend."""
         from dataclasses import replace
 
-        from gwmock_newtonian.witness.array import WitnessArray
+        from gwmock_newtonian_noise.witness.array import WitnessArray
 
         disguised = WitnessArray(sensors=(replace(joint_array.sensors[0], name="ET1"), *joint_array.sensors[1:]))
         with pytest.raises(ValueError, match="disjoint"):

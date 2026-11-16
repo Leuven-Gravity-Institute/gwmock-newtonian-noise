@@ -1,4 +1,4 @@
-"""Test importing the gwmock_newtonian package and its modules."""
+"""Test importing the gwmock_newtonian_noise package and its modules."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import pkgutil
 
 import pytest
 
-import gwmock_newtonian
+import gwmock_newtonian_noise
 
 
 def get_all_submodules(package):
@@ -23,12 +23,12 @@ def get_all_submodules(package):
 
 
 def test_import_main_package():
-    """Test that the main gwmock_newtonian package can be imported."""
-    assert hasattr(gwmock_newtonian, "__version__")
-    assert gwmock_newtonian.__version__ is not None
+    """Test that the main gwmock_newtonian_noise package can be imported."""
+    assert hasattr(gwmock_newtonian_noise, "__version__")
+    assert gwmock_newtonian_noise.__version__ is not None
 
 
-@pytest.mark.parametrize("module_name", get_all_submodules(gwmock_newtonian))
+@pytest.mark.parametrize("module_name", get_all_submodules(gwmock_newtonian_noise))
 def test_import_submodule(module_name):
     """Test that all submodules can be imported."""
     __import__(module_name)

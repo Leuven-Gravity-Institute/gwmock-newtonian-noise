@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import dataclasses
+import importlib
 
 import numpy as np
 import pytest
 from _family_fixtures import assert_covariance_close, body, love, model, point, rayleigh
 
-from gwmock_newtonian.families import (
+from gwmock_newtonian_noise.families import (
     BodyWaveFamily,
     CavityModel,
     FamilyJointModel,
@@ -20,9 +21,9 @@ from gwmock_newtonian.families import (
     family_joint_mode_responses,
     phase_velocity_spread,
 )
-from gwmock_newtonian.families.love import LayerOverHalfSpace
-from gwmock_newtonian.families.point import PointSource
-from gwmock_newtonian.witness.response import joint_covariance, joint_mode_responses
+from gwmock_newtonian_noise.families.love import LayerOverHalfSpace
+from gwmock_newtonian_noise.families.point import PointSource
+from gwmock_newtonian_noise.witness.response import joint_covariance, joint_mode_responses
 
 FREQUENCIES = np.array([0.0, 0.5, 2.0, 5.0])
 
@@ -160,10 +161,6 @@ class TestNoSiteDefaults:
 
     def test_docstrings_mark_every_unanchored_parameter(self) -> None:
         """Each family's documentation says UNANCHORED, so the status is visible where it is configured."""
-        import gwmock_newtonian.families.body as body_module
-        import gwmock_newtonian.families.love as love_module
-        import gwmock_newtonian.families.point as point_module
-        import gwmock_newtonian.families.response as response_module
-
-        for module in (body_module, love_module, point_module, response_module):
+        for name in ("body", "love", "point", "response"):
+            module = importlib.import_module(f"gwmock_newtonian_noise.families.{name}")
             assert "UNANCHORED" in (module.__doc__ or ""), module.__name__

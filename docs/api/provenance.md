@@ -5,7 +5,7 @@ description: Machine-readable realization provenance.
 
 <!-- prettier-ignore-start -->
 
-::: gwmock_newtonian.provenance
+::: gwmock_newtonian_noise.provenance
     options:
         show_root_heading: false
         heading_level: 2

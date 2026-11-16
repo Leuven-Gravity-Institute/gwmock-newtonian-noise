@@ -5,7 +5,7 @@ description: Realization and stream API.
 
 <!-- prettier-ignore-start -->
 
-::: gwmock_newtonian.simulator
+::: gwmock_newtonian_noise.simulator
     options:
         show_root_heading: false
         heading_level: 2

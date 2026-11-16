@@ -6,9 +6,9 @@ import numpy as np
 import pytest
 from gwmock_noise.simulators.protocol import NoiseSimulator
 
-from gwmock_newtonian.adapter import StrainOnlyAdapter
-from gwmock_newtonian.config import NewtonianScaffoldConfig
-from gwmock_newtonian.simulator import NewtonianScaffoldSimulator
+from gwmock_newtonian_noise.adapter import StrainOnlyAdapter
+from gwmock_newtonian_noise.config import NewtonianScaffoldConfig
+from gwmock_newtonian_noise.simulator import NewtonianScaffoldSimulator
 
 pytestmark = pytest.mark.unit
 

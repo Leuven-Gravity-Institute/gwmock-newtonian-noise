@@ -5,7 +5,7 @@ description: Strain-only adapter for legacy gwmock-noise consumers.
 
 <!-- prettier-ignore-start -->
 
-::: gwmock_newtonian.adapter
+::: gwmock_newtonian_noise.adapter
     options:
         show_root_heading: false
         heading_level: 2

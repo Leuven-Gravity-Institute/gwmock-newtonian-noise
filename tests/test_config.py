@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from gwmock_newtonian.config import NewtonianScaffoldConfig
+from gwmock_newtonian_noise.config import NewtonianScaffoldConfig
 
 pytestmark = pytest.mark.unit
 

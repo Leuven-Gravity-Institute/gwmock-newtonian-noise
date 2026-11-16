@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from gwmock_newtonian.seismic.medium import (
+from gwmock_newtonian_noise.seismic.medium import (
     ElasticHalfSpace,
     rayleigh_secular_cubic_coefficients,
     rayleigh_velocity_ratio,

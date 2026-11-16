@@ -4,7 +4,7 @@ Covers the acceptance-level limits: zero-field, isotropic and directional
 (the depth/single-mode limit's control lives in ``test_seismic_depth.py``),
 plus the Hermitian-PSD-without-clipping and empirical-convergence
 requirements. Each analytic-limit test compares the production
-:func:`~gwmock_newtonian.seismic.field.analytic_covariance` against a control
+:func:`~gwmock_newtonian_noise.seismic.field.analytic_covariance` against a control
 computed by a different method (:mod:`scipy.special` Bessel functions via a
 closed-form directional-spectrum expansion), not by re-evaluating the
 production code's own azimuth quadrature.
@@ -18,15 +18,19 @@ import numpy as np
 import pytest
 from scipy.special import i0, iv, j0, jv
 
-from gwmock_newtonian.seismic.field import (
+from gwmock_newtonian_noise.seismic.field import (
     RayleighWaveFieldConfig,
     analytic_covariance,
     analytic_density_covariance,
     realize,
     steering_vectors,
 )
-from gwmock_newtonian.seismic.medium import ElasticHalfSpace
-from gwmock_newtonian.seismic.spectrum import power_law_psd, uniform_directional_density, von_mises_directional_density
+from gwmock_newtonian_noise.seismic.medium import ElasticHalfSpace
+from gwmock_newtonian_noise.seismic.spectrum import (
+    power_law_psd,
+    uniform_directional_density,
+    von_mises_directional_density,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -179,7 +183,7 @@ class TestHermitianPositiveSemidefinite:
         """Every eigenvalue is non-negative up to floating-point roundoff, unaided by any clip.
 
         This is a structural guarantee (a nonnegative-weighted sum of outer products), verified
-        here numerically; :mod:`gwmock_newtonian.seismic.field` never calls a clipping routine
+        here numerically; :mod:`gwmock_newtonian_noise.seismic.field` never calls a clipping routine
         (no ``np.clip``/eigenvalue floor appears anywhere in that module).
         """
         config = _uniform_config(directional_density=von_mises_directional_density(mu=0.7, kappa=4.0))
@@ -194,7 +198,7 @@ class TestHermitianPositiveSemidefinite:
         """Static guard: the field module's source never calls a clip/floor routine (docstring prose aside)."""
         import inspect
 
-        from gwmock_newtonian.seismic import field as field_module
+        from gwmock_newtonian_noise.seismic import field as field_module
 
         source = inspect.getsource(field_module)
         assert "np.clip" not in source

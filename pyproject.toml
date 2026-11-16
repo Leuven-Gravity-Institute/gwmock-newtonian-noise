@@ -3,7 +3,7 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "gwmock-newtonian"
+name = "gwmock-newtonian-noise"
 authors = [{ name = "Isaac C. F. Wong" }]
 description = "Newtonian-noise and seismic-witness simulation for triangular gravitational-wave detectors such as the Einstein Telescope"
 readme = "README.md"
@@ -47,18 +47,18 @@ build = ["hatch>=1.18.1"]
 release = ["git-cliff>=2.13.1"]
 
 [project.scripts]
-gwmock-newtonian = "gwmock_newtonian.cli.main:app"
+gwmock-newtonian-noise = "gwmock_newtonian_noise.cli.main:app"
 
 [project.entry-points."gwmock_noise.joint_backends"]
-newtonian_scaffold = "gwmock_newtonian.simulator:NewtonianScaffoldSimulator"
-newtonian_rayleigh = "gwmock_newtonian.joint:NewtonianJointSimulator"
+newtonian_scaffold = "gwmock_newtonian_noise.simulator:NewtonianScaffoldSimulator"
+newtonian_rayleigh = "gwmock_newtonian_noise.joint:NewtonianJointSimulator"
 
 [project.urls]
-Documentation = "https://isaac-cf-wong.github.io/gwmock-newtonian"
-Source = "https://github.com/isaac-cf-wong/gwmock-newtonian"
-Tracker = "https://github.com/isaac-cf-wong/gwmock-newtonian/issues"
-Home = "https://github.com/isaac-cf-wong/gwmock-newtonian"
-"Release Notes" = "https://github.com/isaac-cf-wong/gwmock-newtonian/releases"
+Documentation = "https://leuven-gravity-institute.github.io/gwmock-newtonian-noise"
+Source = "https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise"
+Tracker = "https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/issues"
+Home = "https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise"
+"Release Notes" = "https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/releases"
 
 [tool.dependency-support-policy]
 # Rolling support floors (SPEC 0): runtime lower bounds are raised on a schedule
@@ -84,7 +84,7 @@ source = "vcs"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/gwmock_newtonian"]
+packages = ["src/gwmock_newtonian_noise"]
 
 [tool.coverage.run]
 branch = true
@@ -138,7 +138,7 @@ commands =
 
 [tool.mutmut]
 # mutmut copies the project into `mutants/` and mutates the copy, so the working tree is untouched.
-source_paths = ["src/gwmock_newtonian"]
+source_paths = ["src/gwmock_newtonian_noise"]
 # `tests/`, `pyproject.toml` and `uv.lock` are copied by default. `scripts/` is not, and
 # tests/test_release_version.py imports from it, so it has to come along or every mutant is judged
 # against a suite that errors for reasons unrelated to the mutation.
@@ -167,7 +167,7 @@ pytest_add_cli_args = [
 # initialised twice in one interpreter.
 
 [tool.ruff]
-line-length = 120 # Matches Black's default
+line-length = 120        # Matches Black's default
 target-version = "py312" # Align with CI (3.12–3.14) and requires-python (>=3.12)
 # A verbatim copy of an upstream gwmock-noise module (see tests/test_joint_conformance.py). It is
 # kept byte-identical to its source, so this repository's import-sorting rules must not rewrite it.

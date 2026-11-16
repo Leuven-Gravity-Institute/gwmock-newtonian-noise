@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from _family_fixtures import MEDIUM, body, flat, model
 
-from gwmock_newtonian.detector.newtonian import GRAVITATIONAL_CONSTANT
-from gwmock_newtonian.families import (
+from gwmock_newtonian_noise.detector.newtonian import GRAVITATIONAL_CONSTANT
+from gwmock_newtonian_noise.families import (
     BodyWaveFamily,
     SphereGrid,
     equipartition_shear_to_p_ratio,
@@ -18,8 +18,8 @@ from gwmock_newtonian.families import (
     uniform_sphere_density,
     von_mises_fisher_density,
 )
-from gwmock_newtonian.families.gravity import component_displacement
-from gwmock_newtonian.seismic.medium import rayleigh_velocity_ratio
+from gwmock_newtonian_noise.families.gravity import component_displacement
+from gwmock_newtonian_noise.seismic.medium import rayleigh_velocity_ratio
 
 ALPHA, BETA = MEDIUM.p_wave_speed, MEDIUM.s_wave_speed
 #: P critical angle of SV incidence, ``asin(beta / alpha)`` = 0.584 rad for the fixture medium.

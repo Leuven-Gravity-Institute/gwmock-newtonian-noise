@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from _family_fixtures import MEDIUM, flat, point
 
-from gwmock_newtonian.detector.newtonian import GRAVITATIONAL_CONSTANT
-from gwmock_newtonian.families import PointSource, PointSourceFamily, point_sources
+from gwmock_newtonian_noise.detector.newtonian import GRAVITATIONAL_CONSTANT
+from gwmock_newtonian_noise.families import PointSource, PointSourceFamily, point_sources
 
 SOURCE = np.array([400.0, 250.0, 450.0])
 FREQUENCY = 3.0

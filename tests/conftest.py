@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from gwmock_newtonian.config import NewtonianScaffoldConfig
+from gwmock_newtonian_noise.config import NewtonianScaffoldConfig
 
 
 @pytest.fixture
@@ -47,12 +47,12 @@ JOINT_SEGMENT_DURATION = 2.0
 
 def _joint_detector_config():
     """Return the detector-response fixture wrapping an isotropic flat-PSD field."""
-    from gwmock_newtonian.detector.geometry import equilateral_triangle
-    from gwmock_newtonian.detector.masses import shared_vertex_layout
-    from gwmock_newtonian.detector.response import DetectorResponseConfig
-    from gwmock_newtonian.seismic.field import RayleighWaveFieldConfig
-    from gwmock_newtonian.seismic.medium import ElasticHalfSpace
-    from gwmock_newtonian.seismic.spectrum import power_law_psd, uniform_directional_density
+    from gwmock_newtonian_noise.detector.geometry import equilateral_triangle
+    from gwmock_newtonian_noise.detector.masses import shared_vertex_layout
+    from gwmock_newtonian_noise.detector.response import DetectorResponseConfig
+    from gwmock_newtonian_noise.seismic.field import RayleighWaveFieldConfig
+    from gwmock_newtonian_noise.seismic.medium import ElasticHalfSpace
+    from gwmock_newtonian_noise.seismic.spectrum import power_law_psd, uniform_directional_density
 
     field = RayleighWaveFieldConfig(
         medium=ElasticHalfSpace(p_wave_speed=5800.0, s_wave_speed=3200.0, density=2700.0),
@@ -68,8 +68,8 @@ def make_joint_array(**overrides):
     """Return the four-sensor witness fixture; ``overrides`` replace fields of sensor ``W2``."""
     from dataclasses import replace
 
-    from gwmock_newtonian.witness.array import WitnessArray
-    from gwmock_newtonian.witness.sensor import SensorQuantity, WitnessSensor
+    from gwmock_newtonian_noise.witness.array import WitnessArray
+    from gwmock_newtonian_noise.witness.sensor import SensorQuantity, WitnessSensor
 
     def noise(quantity: SensorQuantity):
         # Comparable to each quantity's field signal (displacement PSD ~1 m^2/Hz,
@@ -122,7 +122,7 @@ def joint_array():
 @pytest.fixture(scope="session")
 def joint_prototype(joint_detector_config, joint_array):
     """One constructed physical backend; tests receive independent deep copies of it."""
-    from gwmock_newtonian.joint import NewtonianJointSimulator
+    from gwmock_newtonian_noise.joint import NewtonianJointSimulator
 
     return NewtonianJointSimulator(
         joint_detector_config,

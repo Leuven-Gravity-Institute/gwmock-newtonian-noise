@@ -5,22 +5,22 @@ from __future__ import annotations
 import subprocess
 import sys
 
-import gwmock_newtonian
+import gwmock_newtonian_noise
 
 
 def test_basic_import() -> None:
     """Test basic import."""
     print(f"Python version: {sys.version}")
-    print(f"Package version: {gwmock_newtonian.__version__}")
+    print(f"Package version: {gwmock_newtonian_noise.__version__}")
 
     # Ensure it's not importing the local folder
-    if "site-packages" not in gwmock_newtonian.__file__ and "dist" not in gwmock_newtonian.__file__:
-        print(f"Warning: Package imported from unexpected location: {gwmock_newtonian.__file__}")
+    if "site-packages" not in gwmock_newtonian_noise.__file__ and "dist" not in gwmock_newtonian_noise.__file__:
+        print(f"Warning: Package imported from unexpected location: {gwmock_newtonian_noise.__file__}")
 
 
 def test_cli_help() -> None:
     """Test CLI help."""
-    result = subprocess.run(["gwmock-newtonian", "--help"], capture_output=True, text=True, check=False)  # noqa: S607
+    result = subprocess.run(["gwmock-newtonian-noise", "--help"], capture_output=True, text=True, check=False)  # noqa: S607
     assert result.returncode == 0
     assert "usage:" in result.stdout.lower()
 
