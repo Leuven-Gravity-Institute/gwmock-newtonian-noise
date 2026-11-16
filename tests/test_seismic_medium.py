@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from gwmock_newtonian_noise.seismic.field import RayleighWaveFieldConfig
 from gwmock_newtonian_noise.seismic.medium import (
     ElasticHalfSpace,
     rayleigh_secular_cubic_coefficients,
@@ -76,13 +77,19 @@ class TestElasticHalfSpace:
         np.testing.assert_allclose(medium.rayleigh_phase_velocity / beta, 0.9194, atol=1e-4)
 
     def test_non_dispersive_across_frequency(self) -> None:
-        """A homogeneous half-space's Rayleigh velocity does not depend on frequency at all."""
+        """Without a dispersion override the field uses the one half-space velocity at every frequency."""
         medium = ElasticHalfSpace(
             p_wave_speed=_UNANCHORED_ALPHA, s_wave_speed=_UNANCHORED_BETA, density=_UNANCHORED_RHO
         )
-        # rayleigh_phase_velocity takes no frequency argument by construction; recomputing it twice
-        # must be identical, confirming no hidden frequency-dependent state.
-        assert medium.rayleigh_phase_velocity == medium.rayleigh_phase_velocity
+        config = RayleighWaveFieldConfig(
+            medium=medium,
+            surface_displacement_psd=np.ones_like,
+            directional_density=np.ones_like,
+        )
+        frequencies = np.array([0.1, 1.0, 10.0, 100.0])
+        np.testing.assert_array_equal(
+            config.phase_velocity_at(frequencies), np.full(frequencies.shape, medium.rayleigh_phase_velocity)
+        )
 
 
 class TestRayleighSecularEquation:

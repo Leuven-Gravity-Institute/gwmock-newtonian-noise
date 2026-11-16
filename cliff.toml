@@ -1,6 +1,7 @@
 # git-cliff ~ configuration file
 # https://git-cliff.org/docs/configuration
 
+
 [changelog]
 # A Tera template to be rendered for each release in the changelog.
 # See https://keats.github.io/tera/docs/#introduction
@@ -10,6 +11,56 @@ body = """
         {% if commit.breaking %}[**breaking**] {% endif %}\
         {{ commit.message | upper_first }} - \
         ([{{ commit.id | truncate(length=7, end="") }}](<REPO>/commit/{{ commit.id }}))\
+        {{ self::print_contributors(commit=commit) }}\
+        {% if commit.remote.pr_number %} in [#{{ commit.remote.pr_number }}](<REPO>/pull/{{ commit.remote.pr_number }}){% endif %}\
+{% endmacro -%}
+
+{#- Credits the PR author (the GitHub login git-cliff looks up for the PR, else for the commit, else
+    the git author name when the lookup is unavailable) and every Co-authored-by trailer of the
+    squashed commit. A co-author with a GitHub noreply address is credited by login; anyone else by
+    name, never by email. A co-author who is the author already is not repeated. -#}
+{% macro print_contributors(commit) -%}
+    {%- set author_login = commit.remote.pr_author | default(value=commit.remote.username | default(value="")) -%}
+    {%- if author_login %} by {{ self::print_login(login=author_login) }}\
+    {%- else %} by {{ self::print_name(name=commit.author.name) }}{% endif -%}
+    {#- A commit that is not a conventional commit has no footers at all. -#}
+    {%- for footer in commit.footers | default(value=[]) -%}
+        {%- if footer.token | lower == "co-authored-by" -%}
+            {%- set name = footer.value | split(pat=" <") | first | trim -%}
+            {%- set email = footer.value | split(pat="<") | last | trim_end_matches(pat=">") | trim -%}
+            {%- set login = "" -%}
+            {%- if email is ending_with("@users.noreply.github.com") -%}
+                {%- set login = email | split(pat="@") | first | split(pat="+") | last -%}
+            {%- endif -%}
+            {#- Skip a co-author only when they are the author credited above: by login when that
+                credit is a login, otherwise by the git author name it fell back to. -#}
+            {%- if author_login -%}
+                {%- set credited = login and login == author_login -%}
+            {%- else -%}
+                {%- set credited = name == commit.author.name -%}
+            {%- endif -%}
+            {%- if not credited -%}
+                {%- if login %}, {{ self::print_login(login=login) }}{% else %}, {{ self::print_name(name=name) }}{% endif -%}
+            {%- endif -%}
+        {%- endif -%}
+    {%- endfor -%}
+{% endmacro -%}
+
+{#- A git name is free text: escape the characters Markdown would read as markup. -#}
+{% macro print_name(name) -%}
+    {{- name | replace(from="\\", to="\\\\") | replace(from="*", to="\\*") | replace(from="_", to="\\_")
+        | replace(from="`", to="\\`") | replace(from="[", to="\\[") | replace(from="]", to="\\]")
+        | replace(from="<", to="\\<") | replace(from=">", to="\\>") -}}
+{% endmacro -%}
+
+{#- A GitHub App's login ends in "[bot]", and GitHub reads "@renovate[bot]" as a mention of the user
+    "renovate" followed by the text "[bot]". Link an App to its page instead of mentioning it. -#}
+{% macro print_login(login) -%}
+    {%- if login is ending_with("[bot]") -%}
+        [{{ login | replace(from="[", to="\\[") | replace(from="]", to="\\]") }}](https://github.com/apps/{{ login | trim_end_matches(pat="[bot]") }})\
+    {%- else -%}
+        @{{ login }}\
+    {%- endif -%}
 {% endmacro -%}
 
 {% if version %}\
@@ -37,8 +88,6 @@ body = """
         {% endif -%}
     {% endfor -%}
 {% endfor -%}
-
-
 """
 
 # A Tera template to be rendered as the changelog's footer.
@@ -48,7 +97,7 @@ footer = """
 
 **Contributing**: We welcome contributions! Please see our [Contributing Guide](<REPO>/blob/main/CONTRIBUTING.md) for details.
 
-**Questions?** Open an issue on [GitHub](<REPO>/issues) or join our discussions.
+**Questions?** Open an issue on [GitHub](<REPO>/issues) or join our [discussions](<REPO>/discussions).
 """
 
 # Remove leading and trailing whitespaces from the changelog's body.
@@ -60,6 +109,10 @@ postprocessors = [
   # Replace the placeholder <REPO> with a URL.
   { pattern = '<REPO>', replace = 'https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise' },
 ]
+# render body even when there are no releases to process
+# render_always = true
+# output file path
+# output = "test.md"
 
 [git]
 # Parse commits according to the conventional commits specification.
@@ -67,17 +120,21 @@ postprocessors = [
 conventional_commits = true
 # Exclude commits that do not match the conventional commits specification.
 filter_unconventional = false
+# Require all commits to be conventional.
 # Takes precedence over filter_unconventional.
 require_conventional = false
 # Split commits on newlines, treating each line as an individual commit.
 split_commits = false
 # An array of regex based parsers to modify commit messages prior to further processing.
 commit_preprocessors = [
+  # Drop the "(#123)" GitHub appends to a squash-merge title: the template links the PR itself.
+  # Only the title line: a body line ending in "(#123)" is left alone.
+  { pattern = '\A([^\n]*?)[ \t]*\(#[0-9]+\)(\n|\z)', replace = '${1}${2}' },
   # Replace issue numbers with link templates to be updated in `changelog.postprocessors`.
-  { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))" },
+  #{ pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))"},
   # Check spelling of the commit message using https://github.com/crate-ci/typos.
   # If the spelling is incorrect, it will be fixed automatically.
-  # { pattern = '.*', replace_command = 'typos --write-changes -' },
+  #{ pattern = '.*', replace_command = 'typos --write-changes -' },
 ]
 # Prevent commits that are breaking from being excluded by commit parsers.
 protect_breaking_commits = false
@@ -85,6 +142,7 @@ protect_breaking_commits = false
 # Assigns commits to groups.
 # Optionally sets the commit's scope and can decide to exclude commits from further processing.
 commit_parsers = [
+  { message = "^Merge branch", skip = true },
   { message = "^Merge pull request", skip = true },
   { message = "^feat", group = "<!-- 0 -->🚀 Features" },
   { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
@@ -103,14 +161,6 @@ commit_parsers = [
 ]
 # Exclude commits that are not matched by any commit parser.
 filter_commits = false
-# Regex to select git tags that represent releases.
-tag_pattern = "v[0-9].*"
-# Regex to select git tags that do not represent proper releases.
-# Takes precedence over `tag_pattern`.
-# Changes belonging to these releases will be included in the next release.
-skip_tags = "beta|alpha"
-# Regex to exclude git tags after applying the tag_pattern.
-ignore_tags = "rc"
 # An array of link parsers for extracting external references, and turning them into URLs, using regex.
 link_parsers = []
 # Include only the tags that belong to the current branch.
@@ -121,6 +171,12 @@ topo_order = false
 topo_order_commits = true
 # Order of commits in each group/release within the changelog.
 # Allowed values: newest, oldest
-sort_commits = "newest"
+sort_commits = "oldest"
 # Process submodules commits
 recurse_submodules = false
+
+[remote.github]
+# Lets the changelog credit each entry's PR author and link its PR. git-cliff reads the token from
+# GITHUB_TOKEN; without one it falls back to the unauthenticated API rate limit.
+owner = "Leuven-Gravity-Institute"
+repo = "gwmock-newtonian-noise"

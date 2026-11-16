@@ -1,9 +1,13 @@
 # gwmock-newtonian-noise
 
 [![Python CI](https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/actions/workflows/ci.yml/badge.svg)](https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](LICENSE)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Leuven-Gravity-Institute/gwmock-newtonian-noise/main.svg)](https://results.pre-commit.ci/latest/github/Leuven-Gravity-Institute/gwmock-newtonian-noise/main)
+[![Documentation Status](https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/actions/workflows/documentation.yml/badge.svg)](https://leuven-gravity-institute.github.io/gwmock-newtonian-noise)
+[![codecov](https://codecov.io/gh/Leuven-Gravity-Institute/gwmock-newtonian-noise/graph/badge.svg)](https://codecov.io/gh/Leuven-Gravity-Institute/gwmock-newtonian-noise)
+[![PyPI Version](https://img.shields.io/pypi/v/gwmock-newtonian-noise)](https://pypi.org/project/gwmock-newtonian-noise/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/gwmock-newtonian-noise)](https://pypi.org/project/gwmock-newtonian-noise/)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](LICENSE)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![SPEC 0 — Minimum Supported Dependencies](https://img.shields.io/badge/SPEC-0-green?labelColor=%23004811&color=%235CA038)](https://scientific-python.org/specs/spec-0000/)
 
 `gwmock-newtonian-noise` simulates Newtonian noise in triangular
 gravitational-wave detectors such as the Einstein Telescope (ET): a
