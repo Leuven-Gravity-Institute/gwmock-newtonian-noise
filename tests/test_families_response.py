@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import importlib
 
 import numpy as np
 import pytest
@@ -160,10 +161,6 @@ class TestNoSiteDefaults:
 
     def test_docstrings_mark_every_unanchored_parameter(self) -> None:
         """Each family's documentation says UNANCHORED, so the status is visible where it is configured."""
-        import gwmock_newtonian_noise.families.body as body_module
-        import gwmock_newtonian_noise.families.love as love_module
-        import gwmock_newtonian_noise.families.point as point_module
-        import gwmock_newtonian_noise.families.response as response_module
-
-        for module in (body_module, love_module, point_module, response_module):
+        for name in ("body", "love", "point", "response"):
+            module = importlib.import_module(f"gwmock_newtonian_noise.families.{name}")
             assert "UNANCHORED" in (module.__doc__ or ""), module.__name__
