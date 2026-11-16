@@ -13,19 +13,17 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Private :: Do Not Upload",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dynamic = ["version"]
 dependencies = [
-  # The joint strain+witness protocol this package conforms to (PR #384,
-  # `gwmock_noise.simulators.joint_protocol`) is not yet in a released
-  # gwmock-noise version -- the latest PyPI release (0.13.0) predates it and
-  # no later release has shipped it. Pinned to the exact merged commit until
-  # a gwmock-noise release includes it.
-  "gwmock-noise @ git+https://github.com/Leuven-Gravity-Institute/gwmock-noise.git@ef45695b920128a2bf4ce57d913272664c3da0d8",
+  # 0.23.0 is the first release with the joint strain+witness protocol
+  # (`gwmock_noise.simulators.joint_protocol`) and its shared conformance suite
+  # (`gwmock_noise.testing.joint_conformance`).
+  "gwmock-noise>=0.23.0",
   "numpy>=2.2.0",
   "pydantic>=2.9.0",
   "scipy>=1.14.0",
@@ -66,22 +64,9 @@ Home = "https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise"
 policy = "spec0"
 groups = ["project"]
 lock = "minimal"
-# gwmock-noise is pinned to an exact commit (see [project.dependencies]),
-# not a PyPI version range, because the joint protocol this package conforms
-# to has not shipped in a release yet. The floor-update workflow does not
-# apply to a VCS pin, so it is excluded here rather than silently no-op'd.
-exclude = ["gwmock-noise"]
 
 [tool.hatch.version]
 source = "vcs"
-
-[tool.hatch.metadata]
-# gwmock-noise is pinned to a git commit (see [project.dependencies]), which
-# hatchling refuses to build a wheel with unless direct references are
-# explicitly allowed. A wheel built this way is only installable from a
-# source checkout or with `pip install --find-links`/`uv`, not from a plain
-# PyPI index -- acceptable here since this package is never published.
-allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/gwmock_newtonian_noise"]
@@ -167,11 +152,8 @@ pytest_add_cli_args = [
 # initialised twice in one interpreter.
 
 [tool.ruff]
-line-length = 120        # Matches Black's default
-target-version = "py312" # Align with CI (3.12–3.14) and requires-python (>=3.12)
-# A verbatim copy of an upstream gwmock-noise module (see tests/test_joint_conformance.py). It is
-# kept byte-identical to its source, so this repository's import-sorting rules must not rewrite it.
-extend-exclude = ["tests/_upstream_joint_conformance.py"]
+line-length = 120 # Matches Black's default
+target-version = "py313" # Align with CI (3.13–3.15) and requires-python (>=3.13)
 lint.extend-select = [
   "E",
   "F",
