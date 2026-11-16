@@ -10,8 +10,9 @@ some ways to get support:
 If you're experiencing a problem or have a question about how to use
 `gwmock-newtonian-noise`, please open a
 [GitHub Discussion](https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/discussions)
-or [Issue](https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/issues), depending
-on the nature of your question.
+or
+[Issue](https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise/issues),
+depending on the nature of your question.
 
 - Use **Discussions** for general questions, ideas, or usage help.
 - Use **Issues** for reporting bugs or requesting new features.
