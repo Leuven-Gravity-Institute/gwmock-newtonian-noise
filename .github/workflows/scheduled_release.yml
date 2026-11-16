@@ -29,11 +29,16 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Check for new commits
+            # Release only when something that reaches the built package changed
+            # since the latest tag: its sources, packaging config, readme, license
+            # or dynamic metadata files. Dev-dependency bumps, lock-file
+            # maintenance, CI, tests and docs do not count.
+            - name: Check for package changes
               id: check_commits
-              uses: isaac-cf-wong/detect-git-changes-action@10d1e3ac7c5ee0997d7b370e9929cacac9c87013 # v0.0.19
+              uses: isaac-cf-wong/detect-git-changes-action@fd41a9c5553a9148e8f78399855fd19e04801501 # v0.2.0
               with:
                   use-latest-tag: true
+                  preset: python
 
     ci:
         needs: check_new_commits
@@ -42,12 +47,10 @@ jobs:
 
     codeql:
         needs: check_new_commits
-        if: ${{ needs.check_new_commits.outputs.has-changes == 'true' }}
+        if: ${{ needs.check_new_commits.outputs.has-changes == 'true'}}
         uses: ./.github/workflows/codeql.yml
         permissions:
             security-events: write
-            actions: read
-            contents: read
 
     create_tag:
         needs: [ci, codeql]
@@ -86,16 +89,21 @@ jobs:
                   if [ "$PREVIOUS_TAG" = "none" ]; then
                     NEW_TAG="v0.1.0"
                   else
-                    # git-cliff proposes; `release_version.py` decides. Its default sends a breaking
-                    # change straight to the next major, which is right once an API has been promised
-                    # and wrong before: at v0.10.2 it answers v1.0.0, publishing a stable-API claim as
-                    # a side effect of a bug fix. While the major is 0 that is demoted to a minor bump
-                    # unless this run was dispatched with allow_major_bump. At 1.x and above the
-                    # proposal is taken unchanged.
+                    # git-cliff proposes; `release_version.py` decides. git-cliff's default sends a
+                    # breaking change straight to the next major, which is right once an API has been
+                    # promised and wrong before: at any v0.x it answers v1.0.0, publishing a stable-API
+                    # claim as a side effect of an ordinary change. While the major is 0 that is
+                    # demoted to a minor bump unless this run was dispatched with allow_major_bump. At
+                    # 1.x and above the proposal is taken unchanged.
                     #
-                    # The `2>/dev/null` that used to be here is gone deliberately: it hid git-cliff
-                    # failing, and an empty NEW_TAG would then have been tagged as the empty string.
-                    PROPOSED_TAG=$(uv run --frozen git-cliff --bumped-version --config cliff.toml)
+                    # The `2>/dev/null` that used to wrap this call is gone deliberately: it hid
+                    # git-cliff failing, and an empty NEW_TAG would then have been tagged as the empty
+                    # string.
+                    #
+                    # `--offline`: the version needs only the local history. Without it, the
+                    # `[remote.github]` section makes git-cliff fetch every commit and PR from GitHub
+                    # first, and a rate-limited or failed request aborts this step.
+                    PROPOSED_TAG=$(uv run --frozen git-cliff --bumped-version --offline --config cliff.toml)
                     NEW_TAG=$(uv run --frozen python scripts/release_version.py \
                       --current "$PREVIOUS_TAG" \
                       --proposed "$PROPOSED_TAG" \
@@ -129,16 +137,15 @@ jobs:
         uses: ./.github/workflows/release.yml
         permissions:
             contents: write
-            id-token: write
+            pull-requests: read
         with:
             tag_name: ${{ needs.create_tag.outputs.new_tag }}
+        secrets:
+            CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
     publish:
         needs: [release, create_tag]
         runs-on: ubuntu-latest
-        # Set the repository variable PUBLISH_TO_PYPI to "true" once the
-        # 'pypi' environment and PyPI trusted publishing are configured.
-        if: vars.PUBLISH_TO_PYPI == 'true'
         environment:
             name: pypi
         permissions:
@@ -172,6 +179,11 @@ jobs:
               run:
                   uv run --isolated --no-project --with dist/*.tar.gz
                   tests/smoke_test.py
+
+            # uv publish uploads PEP 740 attestations but does not make them: without this step PyPI
+            # shows no provenance for the release. Uses the trusted-publishing token of this job.
+            - name: Generate PEP 740 attestations
+              uses: astral-sh/attest-action@39b6ce43875c196a579e31635b11aa2a2036384a # v0.0.7
 
             - name: Publish
               run: uv publish

@@ -40,9 +40,6 @@ N_VERTICES = 3
 #: Number of strain channels in the triangle.
 N_DETECTORS = 3
 
-#: Absolute tolerance for unit-norm and closure checks (dimensionless).
-_TOLERANCE = 1e-12
-
 
 def _unit(vector: NDArray[np.floating]) -> NDArray[np.float64]:
     """Return ``vector`` scaled to unit length, rejecting a vanishing vector."""
