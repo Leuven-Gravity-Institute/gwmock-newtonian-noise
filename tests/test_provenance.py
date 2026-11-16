@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from gwmock_newtonian.provenance import PROVENANCE_SCHEMA_VERSION, RealizationProvenance
+from gwmock_newtonian_noise.provenance import PROVENANCE_SCHEMA_VERSION, RealizationProvenance
 
 pytestmark = pytest.mark.unit
 

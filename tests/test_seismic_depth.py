@@ -4,7 +4,7 @@ The single-mode/depth-dependence limit's independent analytic control lives
 here (:class:`TestIndependentElasticityControl`): it re-derives the traction
 at the free surface and the elastodynamic (Navier-Cauchy) equation of motion
 directly from raw dilatational/shear potentials and elementary calculus, and
-checks the closed-form shapes in :mod:`gwmock_newtonian.seismic.depth`
+checks the closed-form shapes in :mod:`gwmock_newtonian_noise.seismic.depth`
 against that derivation -- not by recomputing the same closed form with the
 same algebra.
 
@@ -15,7 +15,7 @@ compares ``horizontal_shape`` / ``vertical_shape`` (as they enter the
 displacement, ``1j * k * horizontal_shape`` and ``-k * vertical_shape``)
 against the potential displacements at several depths, and
 :meth:`TestIndependentElasticityControl.test_production_density_steering_matches_bulk_mass_conservation`
-compares :func:`~gwmock_newtonian.seismic.field.steering_vectors`' density
+compares :func:`~gwmock_newtonian_noise.seismic.field.steering_vectors`' density
 channel against ``-rho0 * div(u)`` for a unit surface vertical displacement.
 Those comparisons are what make the control able to fail on a production
 depth-shape or density-sign defect; the local potentials alone cannot.
@@ -26,10 +26,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from gwmock_newtonian.seismic.depth import depth_rates, dilatation_shape, horizontal_shape, vertical_shape
-from gwmock_newtonian.seismic.field import RayleighWaveFieldConfig, steering_vectors
-from gwmock_newtonian.seismic.medium import ElasticHalfSpace
-from gwmock_newtonian.seismic.spectrum import uniform_directional_density
+from gwmock_newtonian_noise.seismic.depth import depth_rates, dilatation_shape, horizontal_shape, vertical_shape
+from gwmock_newtonian_noise.seismic.field import RayleighWaveFieldConfig, steering_vectors
+from gwmock_newtonian_noise.seismic.medium import ElasticHalfSpace
+from gwmock_newtonian_noise.seismic.spectrum import uniform_directional_density
 
 pytestmark = pytest.mark.unit
 
@@ -95,11 +95,11 @@ class TestIndependentElasticityControl:
     Re-derives the displacement field from raw potentials phi = A*exp(-q_alpha*z)*P,
     psi = B*exp(-q_beta*z)*P (P = exp(i*(k*x - omega*t))) with exact elementary-calculus
     derivatives -- not finite differences, not a re-typing of
-    :mod:`gwmock_newtonian.seismic.depth`'s combined closed forms -- and checks that
+    :mod:`gwmock_newtonian_noise.seismic.depth`'s combined closed forms -- and checks that
     the resulting stress field is traction-free at z=0 and that the displacement
     satisfies the elastodynamic Cauchy equation of motion everywhere. The boundary-
     condition coefficient B is the one this package's derivation requires (see the
-    :mod:`gwmock_newtonian.seismic.depth` module docstring).
+    :mod:`gwmock_newtonian_noise.seismic.depth` module docstring).
 
     The same raw-potential field is then the independent control for the production
     outputs: the closed-form ``horizontal_shape`` / ``vertical_shape`` are compared to

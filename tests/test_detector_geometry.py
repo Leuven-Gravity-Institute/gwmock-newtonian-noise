@@ -18,14 +18,14 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from gwmock_newtonian.detector.geometry import (
+from gwmock_newtonian_noise.detector.geometry import (
     CANONICAL_DETECTOR_VERTICES,
     DetectorDefinition,
     TriangleGeometry,
     equilateral_triangle,
     rotation_matrix,
 )
-from gwmock_newtonian.detector.masses import (
+from gwmock_newtonian_noise.detector.masses import (
     DetectorOptics,
     TestMass,
     TestMassLayout,

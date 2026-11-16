@@ -1,13 +1,13 @@
 """Tests for the joint strain--witness response, covariance and realizations.
 
-The production :func:`~gwmock_newtonian.witness.response.joint_covariance`
+The production :func:`~gwmock_newtonian_noise.witness.response.joint_covariance`
 assembles one shared field into the three detector strains and every active
 witness. These tests control it independently:
 
 - the strain block is asserted *equal* to the unmodified
-  :func:`~gwmock_newtonian.detector.response.strain_covariance`;
+  :func:`~gwmock_newtonian_noise.detector.response.strain_covariance`;
 - the witness per-mode response is recomputed from the field's own
-  :func:`~gwmock_newtonian.seismic.field.steering_vectors` primitive, not by
+  :func:`~gwmock_newtonian_noise.seismic.field.steering_vectors` primitive, not by
   calling the production witness helper again;
 - analytic strain--witness and witness--witness covariances are compared with a
   seeded Monte-Carlo average of realizations, at a tolerance stated from
@@ -25,14 +25,14 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from gwmock_newtonian.detector.geometry import TriangleGeometry, equilateral_triangle
-from gwmock_newtonian.detector.masses import shared_vertex_layout
-from gwmock_newtonian.detector.response import DetectorResponseConfig, strain_covariance
-from gwmock_newtonian.seismic.field import RayleighWaveFieldConfig, steering_vectors
-from gwmock_newtonian.seismic.medium import ElasticHalfSpace
-from gwmock_newtonian.seismic.spectrum import power_law_psd, uniform_directional_density
-from gwmock_newtonian.witness.array import CorrelatedNoise, ExplicitNoise, WitnessArray, nested_disk_array
-from gwmock_newtonian.witness.response import (
+from gwmock_newtonian_noise.detector.geometry import TriangleGeometry, equilateral_triangle
+from gwmock_newtonian_noise.detector.masses import shared_vertex_layout
+from gwmock_newtonian_noise.detector.response import DetectorResponseConfig, strain_covariance
+from gwmock_newtonian_noise.seismic.field import RayleighWaveFieldConfig, steering_vectors
+from gwmock_newtonian_noise.seismic.medium import ElasticHalfSpace
+from gwmock_newtonian_noise.seismic.spectrum import power_law_psd, uniform_directional_density
+from gwmock_newtonian_noise.witness.array import CorrelatedNoise, ExplicitNoise, WitnessArray, nested_disk_array
+from gwmock_newtonian_noise.witness.response import (
     joint_covariance,
     joint_mode_responses,
     joint_strain_covariance_block,
@@ -41,7 +41,7 @@ from gwmock_newtonian.witness.response import (
     witness_covariance,
     witness_mode_responses,
 )
-from gwmock_newtonian.witness.sensor import SensorQuantity, WitnessSensor, constant_response, quantity_transfer
+from gwmock_newtonian_noise.witness.sensor import SensorQuantity, WitnessSensor, constant_response, quantity_transfer
 
 pytestmark = pytest.mark.unit
 
@@ -137,7 +137,7 @@ class TestPerModeResponses:
         """The witness response is the sensor transfer times the oriented field steering.
 
         The expected value is recomputed from
-        :func:`~gwmock_newtonian.seismic.field.steering_vectors` directly, so a
+        :func:`~gwmock_newtonian_noise.seismic.field.steering_vectors` directly, so a
         sign, axis or transfer error in the production helper fails this test.
         """
         field = _field()
@@ -163,7 +163,7 @@ class TestPerModeResponses:
 
     def test_joint_response_places_the_m6_strain_first(self) -> None:
         """The joint response's strain block is the detector response and the rest the witnesses."""
-        from gwmock_newtonian.detector.response import _plane_wave_kernel, mode_strain
+        from gwmock_newtonian_noise.detector.response import _plane_wave_kernel, mode_strain
 
         config = _detector_config()
         array = _array(3)
@@ -187,7 +187,7 @@ class TestFieldAnchoredCovariance:
 
     def test_vertical_witness_covariance_equals_the_field_z_covariance(self) -> None:
         """Vertical displacement witnesses reproduce the field's own z-z analytic covariance exactly."""
-        from gwmock_newtonian.seismic.field import analytic_covariance
+        from gwmock_newtonian_noise.seismic.field import analytic_covariance
 
         field = _field()
         array = _array(4, self_noise_psd=None, orientation=(0.0, 0.0, 1.0))
@@ -199,7 +199,7 @@ class TestFieldAnchoredCovariance:
 
     def test_strain_witness_cross_block_reproduces_the_shared_mode_sum(self) -> None:
         """The cross block equals the explicit shared-mode outer-product sum from primitives."""
-        from gwmock_newtonian.detector.response import _plane_wave_kernel, mode_strain
+        from gwmock_newtonian_noise.detector.response import _plane_wave_kernel, mode_strain
 
         config = _detector_config()
         array = _array(3, self_noise_psd=None)
@@ -507,7 +507,7 @@ class TestInvariances:
         With ``V -> T(f) V`` on the witness side, the witness block scales by
         ``|T|**2`` and the strain--witness cross block by ``conj(T)``; the
         transfer is the displacement-to-quantity factor of
-        :func:`~gwmock_newtonian.witness.sensor.quantity_transfer`.
+        :func:`~gwmock_newtonian_noise.witness.sensor.quantity_transfer`.
         """
         config = _detector_config()
         frequencies = np.array([0.5, 2.0, 4.0])

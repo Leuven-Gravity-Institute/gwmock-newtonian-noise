@@ -17,8 +17,8 @@ from gwmock_noise.simulators.joint_protocol import (
     JointStrainWitnessSimulator,
 )
 
-from gwmock_newtonian.config import NewtonianScaffoldConfig
-from gwmock_newtonian.simulator import BACKEND_NAME, NewtonianScaffoldSimulator
+from gwmock_newtonian_noise.config import NewtonianScaffoldConfig
+from gwmock_newtonian_noise.simulator import BACKEND_NAME, NewtonianScaffoldSimulator
 
 pytestmark = pytest.mark.unit
 

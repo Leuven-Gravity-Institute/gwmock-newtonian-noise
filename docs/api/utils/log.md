@@ -5,7 +5,7 @@ description: Logging functions.
 
 <!-- prettier-ignore-start -->
 
-::: gwmock_newtonian.utils.log
+::: gwmock_newtonian_noise.utils.log
     options:
         show_root_heading: false
         heading_level: 2

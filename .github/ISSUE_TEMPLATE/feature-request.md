@@ -24,10 +24,10 @@ If applicable, show how you would imagine the Python code looking with this new
 feature:
 
 ```python
-import gwmock_newtonian
+import gwmock_newtonian_noise
 
 # How you'd like to use the new feature
-result = gwmock_newtonian.new_function(param="example")
+result = gwmock_newtonian_noise.new_function(param="example")
 ```
 
 ## 🌈 Use Case & Benefits

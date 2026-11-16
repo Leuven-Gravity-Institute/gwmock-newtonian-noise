@@ -8,8 +8,8 @@ import numpy as np
 import pytest
 from _family_fixtures import LAYER, love, model
 
-from gwmock_newtonian.families import family_joint_covariance, family_strain_responses, love_phase_velocity
-from gwmock_newtonian.families.love import LayerOverHalfSpace, love_dispersion_residual
+from gwmock_newtonian_noise.families import family_joint_covariance, family_strain_responses, love_phase_velocity
+from gwmock_newtonian_noise.families.love import LayerOverHalfSpace, love_dispersion_residual
 
 BETA1, BETA2 = LAYER.layer_s_wave_speed, LAYER.half_space_s_wave_speed
 H = LAYER.layer_thickness

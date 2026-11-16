@@ -13,10 +13,10 @@ import numpy as np
 import pytest
 from _family_fixtures import MEDIUM
 
-from gwmock_newtonian.detector.newtonian import GRAVITATIONAL_CONSTANT, RayleighMode, plane_wave_acceleration
-from gwmock_newtonian.families import CavityModel, free_surface_components
-from gwmock_newtonian.families.gravity import PlaneWaveComponent, full_space_acceleration, half_space_acceleration
-from gwmock_newtonian.families.response import CAVITY_WALL_COEFFICIENT
+from gwmock_newtonian_noise.detector.newtonian import GRAVITATIONAL_CONSTANT, RayleighMode, plane_wave_acceleration
+from gwmock_newtonian_noise.families import CavityModel, free_surface_components
+from gwmock_newtonian_noise.families.gravity import PlaneWaveComponent, full_space_acceleration, half_space_acceleration
+from gwmock_newtonian_noise.families.response import CAVITY_WALL_COEFFICIENT
 
 G = GRAVITATIONAL_CONSTANT
 RHO = MEDIUM.density

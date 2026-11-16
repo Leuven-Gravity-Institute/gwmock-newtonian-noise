@@ -10,9 +10,9 @@ from __future__ import annotations
 
 import numpy as np
 
-from gwmock_newtonian.detector.geometry import equilateral_triangle
-from gwmock_newtonian.detector.masses import shared_vertex_layout
-from gwmock_newtonian.families import (
+from gwmock_newtonian_noise.detector.geometry import equilateral_triangle
+from gwmock_newtonian_noise.detector.masses import shared_vertex_layout
+from gwmock_newtonian_noise.families import (
     BodyWaveFamily,
     CavityModel,
     FamilyJointModel,
@@ -23,11 +23,11 @@ from gwmock_newtonian.families import (
     RayleighFamily,
     uniform_sphere_density,
 )
-from gwmock_newtonian.seismic.field import RayleighWaveFieldConfig
-from gwmock_newtonian.seismic.medium import ElasticHalfSpace
-from gwmock_newtonian.seismic.spectrum import uniform_directional_density
-from gwmock_newtonian.witness.array import WitnessArray
-from gwmock_newtonian.witness.sensor import SensorQuantity, WitnessSensor
+from gwmock_newtonian_noise.seismic.field import RayleighWaveFieldConfig
+from gwmock_newtonian_noise.seismic.medium import ElasticHalfSpace
+from gwmock_newtonian_noise.seismic.spectrum import uniform_directional_density
+from gwmock_newtonian_noise.witness.array import WitnessArray
+from gwmock_newtonian_noise.witness.sensor import SensorQuantity, WitnessSensor
 
 #: UNANCHORED illustrative medium.
 MEDIUM = ElasticHalfSpace(p_wave_speed=5800.0, s_wave_speed=3200.0, density=2700.0)

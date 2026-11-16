@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from gwmock_noise.simulators.joint_protocol import JointCovariance
 
-from gwmock_newtonian.covariance import SAMPLE_VARIANCE, analytic_covariance, equicorrelation_matrix
+from gwmock_newtonian_noise.covariance import SAMPLE_VARIANCE, analytic_covariance, equicorrelation_matrix
 
 pytestmark = pytest.mark.unit
 

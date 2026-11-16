@@ -5,7 +5,7 @@ description: Analytic covariance API.
 
 <!-- prettier-ignore-start -->
 
-::: gwmock_newtonian.covariance
+::: gwmock_newtonian_noise.covariance
     options:
         show_root_heading: false
         heading_level: 2

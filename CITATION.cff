@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 title:
-    'gwmock-newtonian: Newtonian-noise and seismic-witness simulation for
+    'gwmock-newtonian-noise: Newtonian-noise and seismic-witness simulation for
     triangular gravitational-wave detectors'
 license: 'BSD'
 type: software
