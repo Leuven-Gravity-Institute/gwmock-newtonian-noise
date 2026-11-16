@@ -33,16 +33,16 @@ dependencies = [
 [dependency-groups]
 dev = [
   "ruff>=0.16.8",
-  "prek>=0.5.3",
+  "prek>=0.5.10",
   "pytest-github-actions-annotate-failures>=0.4.2",
   "pytest-cov>=7.1.0",
-  "pytest-mock>=3.15.1",
-  "pytest>=9.1.1",
-  "mutmut>=3.8.0",
+  "pytest-mock>=3.17.0",
+  "pytest>=9.2.0",
+  "mutmut>=3.8.1",
 ]
-docs = ["zensical>=0.0.62", "mkdocstrings-python>=2.0.8"]
-build = ["hatch>=1.18.1"]
-release = ["git-cliff>=2.13.1"]
+docs = ["zensical>=0.1.1", "mkdocstrings-python>=2.0.11"]
+build = ["hatch>=1.18.2"]
+release = ["git-cliff>=2.14.2"]
 
 [project.scripts]
 gwmock-newtonian-noise = "gwmock_newtonian_noise.cli.main:app"
