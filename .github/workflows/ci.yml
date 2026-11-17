@@ -7,6 +7,11 @@ on:
     workflow_dispatch:
     workflow_call:
 
+# Least privilege: every job here checks out, installs, tests and uploads coverage, and none writes
+# to the repository.
+permissions:
+    contents: read
+
 jobs:
     test:
         strategy:
@@ -15,12 +20,12 @@ jobs:
                 # (lowest-direct) runs on ubuntu with the oldest supported
                 # Python, since floor versions predate newer interpreters'
                 # wheels.
-                python-version: ['3.12', '3.13', '3.14']
-                os: [ubuntu-latest, windows-latest, macos-latest]
+                python-version: ['3.13', '3.14', '3.15']
+                os: [ubuntu-latest, macos-latest]
                 resolution: [highest]
                 include:
                     - os: ubuntu-latest
-                      python-version: '3.12'
+                      python-version: '3.13'
                       resolution: lowest-direct
         runs-on: ${{ matrix.os }}
         steps:
@@ -33,7 +38,6 @@ jobs:
                   enable-cache: 'true'
 
             - name: Install dependencies
-              shell: bash
               env:
                   RESOLUTION: ${{ matrix.resolution }}
               run: |

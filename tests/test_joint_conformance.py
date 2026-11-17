@@ -6,20 +6,14 @@ public entry-point discovery -- and must pass exactly the checks of the
 own dummy backend (``JointBackendConformance``). The public dummy is
 ``gwmock_noise``'s own ``dummy_correlated`` backend; this suite does not
 special-case it.
-
-``_upstream_joint_conformance`` is a verbatim copy of
-``gwmock_noise.testing.joint_conformance``, which has not yet reached the
-``gwmock-noise`` commit this package pins. Once the pin moves past it, delete
-the copy and import from ``gwmock_noise.testing.joint_conformance`` instead,
-and drop its ``extend-exclude`` entry in ``pyproject.toml``.
 """
 
 from __future__ import annotations
 
 import pytest
-from _upstream_joint_conformance import JointBackendCase, JointBackendConformance
 from gwmock_noise import load_joint_backend
 from gwmock_noise.simulators.joint_protocol import JointStrainWitnessSimulator
+from gwmock_noise.testing.joint_conformance import JointBackendCase, JointBackendConformance
 
 from gwmock_newtonian_noise.config import NewtonianScaffoldConfig
 from gwmock_newtonian_noise.rng import RNG_BIT_GENERATOR

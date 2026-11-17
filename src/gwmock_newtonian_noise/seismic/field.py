@@ -68,9 +68,6 @@ Position = tuple[float, float, float]
 #: The displacement components :func:`steering_vectors` and :func:`analytic_covariance` support.
 DISPLACEMENT_COMPONENTS: tuple[str, ...] = ("x", "y", "z")
 
-#: All components :func:`steering_vectors` supports, displacement plus the bulk density perturbation.
-_ALL_COMPONENTS: tuple[str, ...] = (*DISPLACEMENT_COMPONENTS, "density")
-
 #: Fewest samples a realization can produce: at least a start and end sample.
 _MIN_REALIZATION_SAMPLES = 2
 
