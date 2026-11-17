@@ -7,10 +7,11 @@ name = "gwmock-newtonian-noise"
 authors = [{ name = "Isaac C. F. Wong" }]
 description = "Newtonian-noise and seismic-witness simulation for triangular gravitational-wave detectors such as the Einstein Telescope"
 readme = "README.md"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: BSD License",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",

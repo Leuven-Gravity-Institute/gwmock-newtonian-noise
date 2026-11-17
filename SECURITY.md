@@ -1,18 +1,13 @@
 # Security Policy
 
-We will support the latest stable release of `gwmock-newtonian-noise`. Please
-ensure you are using the most recent version before reporting a security issue.
+Security fixes go into the latest release of `gwmock-newtonian-noise` only.
+Please make sure you are using the most recent version before reporting a
+security issue.
 
-| Version | Supported |
-| ------- | --------- |
-| Latest  | ✅        |
-| < 1.0   | ❌        |
-
-**Notes**:
-
-- Update this table when you release version 1.0 or later
-- Consider your project's versioning strategy and support policy
-- For pre-1.0 versions, you may want to support multiple recent versions
+| Version        | Supported |
+| -------------- | --------- |
+| Latest release | ✅        |
+| Older releases | ❌        |
 
 ## Reporting a Vulnerability
 
