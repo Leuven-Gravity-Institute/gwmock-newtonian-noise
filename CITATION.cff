@@ -1,8 +1,12 @@
 cff-version: 1.2.0
+message:
+    'If you use this software, please cite it using the metadata from this file.'
 title:
     'gwmock-newtonian-noise: Newtonian-noise and seismic-witness simulation for
     triangular gravitational-wave detectors'
-license: 'BSD'
+license: 'BSD-3-Clause'
+repository-code: 'https://github.com/Leuven-Gravity-Institute/gwmock-newtonian-noise'
+url: 'https://leuven-gravity-institute.github.io/gwmock-newtonian-noise'
 type: software
 authors:
     - given-names: Isaac C. F.

@@ -36,6 +36,14 @@ directly:
 A compatibility adapter (`StrainOnlyAdapter`) lets existing `gwmock-noise`
 consumers receive strain-only output from either backend.
 
+## Installation
+
+```bash
+pip install gwmock-newtonian-noise
+```
+
+The package requires Python 3.13 or later.
+
 ## Broader Newtonian-noise families
 
 `gwmock_newtonian_noise.families` extends the physics beyond the minimal
